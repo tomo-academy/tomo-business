@@ -9,14 +9,15 @@ interface AppState {
   card: CardData;
   cards: CardData[];
   youtubeCard: YouTubeCardData | null;
+  youtubeCardId: string | null;
   login: (email: string) => void;
   logout: () => void;
   updateCard: (updates: Partial<CardData>) => void;
   addLink: (link: SocialLink) => void;
   removeLink: (id: string) => void;
   generateYouTubeCard: (url: string) => Promise<void>;
-  removeYouTubeCard: () => void;
-  updateYouTubeCard: (updates: Partial<YouTubeCardData>) => void;
+  removeYouTubeCard: () => Promise<void>;
+  updateYouTubeCard: (updates: Partial<YouTubeCardData>) => Promise<void>;
   switchCard: (cardId: string) => void;
   createNewCard: (name: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
@@ -57,6 +58,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [card, setCard] = useState<CardData>(defaultCard);
   const [cards, setCards] = useState<CardData[]>([]);
   const [youtubeCard, setYoutubeCard] = useState<YouTubeCardData | null>(null);
+  const [youtubeCardId, setYoutubeCardId] = useState<string | null>(null);
 
   // Sync with Supabase user
   useEffect(() => {
@@ -163,6 +165,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           })
         );
         setCards(allCardsData);
+        
+        // Load YouTube cards
+        const youtubeCards = await db.getUserYouTubeCards(supabaseUser.id);
+        if (youtubeCards && youtubeCards.length > 0) {
+          const ytCard = youtubeCards[0]; // For now, use the first one
+          setYoutubeCardId(ytCard.id);
+          setYoutubeCard({
+            channelName: ytCard.channel_name,
+            handle: ytCard.handle,
+            subscribers: ytCard.subscribers,
+            videosCount: ytCard.videos_count,
+            logoUrl: ytCard.logo_url,
+            bannerUrl: ytCard.banner_url,
+            description: ytCard.description,
+            totalViews: ytCard.total_views,
+            location: ytCard.location,
+            channelUrl: ytCard.channel_url,
+            nfcActive: ytCard.nfc_active || false,
+            settings: {
+              showSubscribers: ytCard.show_subscribers !== false,
+              showVideos: ytCard.show_videos !== false,
+              theme: ytCard.theme || 'dark'
+            }
+          });
+        }
       } else {
         // Create default card for new user
         const newCard = await db.createCard(supabaseUser.id, {
@@ -282,15 +309,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setYoutubeCard(newCard);
+    
+    // Save to database
+    if (supabaseUser) {
+      try {
+        const savedCard = await db.createYouTubeCard(supabaseUser.id, {
+          channelName,
+          handle,
+          subscribers,
+          videosCount,
+          logoUrl,
+          bannerUrl,
+          description,
+          totalViews,
+          location,
+          channelUrl: url,
+          settings: {
+            theme: 'dark',
+            showSubscribers: true,
+            showVideos: true
+          }
+        });
+        if (savedCard) {
+          setYoutubeCardId(savedCard.id);
+        }
+      } catch (error) {
+        console.error('Error saving YouTube card:', error);
+      }
+    }
   };
 
-  const removeYouTubeCard = () => {
+  const removeYouTubeCard = async () => {
+    if (youtubeCardId && supabaseUser) {
+      try {
+        await db.deleteYouTubeCard(youtubeCardId);
+      } catch (error) {
+        console.error('Error deleting YouTube card:', error);
+      }
+    }
     setYoutubeCard(null);
+    setYoutubeCardId(null);
   };
 
-  const updateYouTubeCard = (updates: Partial<YouTubeCardData>) => {
+  const updateYouTubeCard = async (updates: Partial<YouTubeCardData>) => {
     if (!youtubeCard) return;
+    
     setYoutubeCard(prev => prev ? { ...prev, ...updates } : null);
+    
+    // Persist to database
+    if (youtubeCardId && supabaseUser) {
+      try {
+        await db.updateYouTubeCard(youtubeCardId, updates);
+      } catch (error) {
+        console.error('Error updating YouTube card:', error);
+      }
+    }
   };
 
   const switchCard = (cardId: string) => {
@@ -348,7 +421,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user, 
       card,
       cards, 
-      youtubeCard, 
+      youtubeCard,
+      youtubeCardId, 
       login, 
       logout, 
       updateCard, 
