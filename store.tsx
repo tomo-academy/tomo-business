@@ -7,6 +7,7 @@ import { db } from './lib/database';
 interface AppState {
   user: User | null;
   card: CardData;
+  cards: CardData[];
   youtubeCard: YouTubeCardData | null;
   login: (email: string) => void;
   logout: () => void;
@@ -16,6 +17,9 @@ interface AppState {
   generateYouTubeCard: (url: string) => Promise<void>;
   removeYouTubeCard: () => void;
   updateYouTubeCard: (updates: Partial<YouTubeCardData>) => void;
+  switchCard: (cardId: string) => void;
+  createNewCard: (name: string) => Promise<void>;
+  deleteCard: (cardId: string) => Promise<void>;
 }
 
 const defaultCard: CardData = {
@@ -51,6 +55,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const supabaseUser = useUser();
   const [user, setUser] = useState<User | null>(null);
   const [card, setCard] = useState<CardData>(defaultCard);
+  const [cards, setCards] = useState<CardData[]>([]);
   const [youtubeCard, setYoutubeCard] = useState<YouTubeCardData | null>(null);
 
   // Sync with Supabase user
@@ -86,9 +91,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       // Load user's cards
-      const cards = await db.getUserCards(supabaseUser.id);
-      if (cards.length > 0) {
-        const firstCard = cards[0];
+      const userCards = await db.getUserCards(supabaseUser.id);
+      if (userCards.length > 0) {
+        const firstCard = userCards[0];
         setCard({
           id: firstCard.id,
           displayName: firstCard.display_name,
@@ -123,6 +128,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             label: l.label
           }))
         }));
+        
+        // Load all cards for selection
+        const allCardsData = await Promise.all(
+          userCards.map(async (c: any) => {
+            const cLinks = await db.getCardLinks(c.id);
+            return {
+              id: c.id,
+              displayName: c.display_name,
+              title: c.title || '',
+              bio: c.bio || '',
+              avatarUrl: c.avatar_url || defaultCard.avatarUrl,
+              coverUrl: c.cover_url || defaultCard.coverUrl,
+              company: c.company || '',
+              location: c.location || '',
+              email: c.email || userData.email,
+              phone: c.phone || '',
+              links: cLinks.map((l: any) => ({
+                id: l.id,
+                platform: l.platform,
+                url: l.url,
+                label: l.label
+              })),
+              theme: {
+                primaryColor: c.theme_primary_color || '#000000',
+                backgroundColor: c.theme_background_color || '#FFFFFF',
+                fontFamily: c.theme_font_family || 'Inter',
+                layout: c.theme_layout || 'modern'
+              },
+              customDomain: c.custom_domain || undefined,
+              customDomainStatus: c.custom_domain_status || 'none',
+              nfcActive: false
+            };
+          })
+        );
+        setCards(allCardsData);
       } else {
         // Create default card for new user
         const newCard = await db.createCard(supabaseUser.id, {
@@ -253,10 +293,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setYoutubeCard(prev => prev ? { ...prev, ...updates } : null);
   };
 
+  const switchCard = (cardId: string) => {
+    const selectedCard = cards.find(c => c.id === cardId);
+    if (selectedCard) {
+      setCard(selectedCard);
+    }
+  };
+
+  const createNewCard = async (name: string) => {
+    if (!supabaseUser) return;
+    
+    try {
+      const newCard = await db.createCard(supabaseUser.id, {
+        ...defaultCard,
+        displayName: name,
+        email: user?.email || ''
+      });
+      
+      const cardData: CardData = {
+        ...defaultCard,
+        id: newCard.id,
+        displayName: name,
+        email: user?.email || ''
+      };
+      
+      setCards(prev => [...prev, cardData]);
+      setCard(cardData);
+    } catch (error) {
+      console.error('Error creating card:', error);
+      throw error;
+    }
+  };
+
+  const deleteCard = async (cardId: string) => {
+    if (!supabaseUser || cards.length <= 1) return; // Keep at least one card
+    
+    try {
+      await db.deleteCard(cardId);
+      const updatedCards = cards.filter(c => c.id !== cardId);
+      setCards(updatedCards);
+      
+      // Switch to first card if current card was deleted
+      if (card.id === cardId && updatedCards.length > 0) {
+        setCard(updatedCards[0]);
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      throw error;
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       user, 
-      card, 
+      card,
+      cards, 
       youtubeCard, 
       login, 
       logout, 
@@ -265,7 +356,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       removeLink, 
       generateYouTubeCard, 
       removeYouTubeCard,
-      updateYouTubeCard
+      updateYouTubeCard,
+      switchCard,
+      createNewCard,
+      deleteCard
     }}>
       {children}
     </AppContext.Provider>

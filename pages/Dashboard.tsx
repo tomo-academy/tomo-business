@@ -11,10 +11,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export const Dashboard: React.FC = () => {
-  const { user, card, youtubeCard } = useAppStore();
+  const { user, card, cards, youtubeCard, switchCard, createNewCard, deleteCard } = useAppStore();
   const [viewData, setViewData] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState({ totalViews: 0, totalClicks: 0, uniqueVisitors: 0 });
   const [loading, setLoading] = useState(true);
+  const [showCardSelector, setShowCardSelector] = useState(false);
+  const [showNewCardModal, setShowNewCardModal] = useState(false);
+  const [newCardName, setNewCardName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,10 +75,59 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleCreateCard = async () => {
+    if (!newCardName.trim()) return;
+    
+    setIsCreating(true);
+    try {
+      await createNewCard(newCardName);
+      setNewCardName('');
+      setShowNewCardModal(false);
+    } catch (error) {
+      console.error('Error creating card:', error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-8 animate-in fade-in duration-500 pb-12 relative">
         
+        {/* Card Selector */}
+        {cards.length > 1 && (
+          <div className="bg-gradient-to-r from-zinc-50 to-white border border-zinc-200 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {cards.slice(0, 3).map((c) => (
+                    <div key={c.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                      <img src={c.avatarUrl} alt={c.displayName} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                  {cards.length > 3 && (
+                    <div className="w-8 h-8 rounded-full border-2 border-white bg-zinc-100 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-zinc-600">+{cards.length - 3}</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Your Cards</p>
+                  <p className="text-sm font-semibold text-zinc-900">{cards.length} Active Cards</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setShowCardSelector(true)}>
+                  <Eye size={14} className="mr-1" /> Switch Card
+                </Button>
+                <Button size="sm" onClick={() => setShowNewCardModal(true)}>
+                  <QrCode size={14} className="mr-1" /> New Card
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Identity Card (Persona Card) */}
         <div className="w-full bg-white border border-zinc-200 rounded-2xl p-0 shadow-soft overflow-hidden flex flex-col md:flex-row">
             {/* Left: Profile Info */}
@@ -337,6 +390,178 @@ export const Dashboard: React.FC = () => {
             </ResponsiveContainer>
           </div>
         </div>
+        
+        {/* Card Selector Modal */}
+        <AnimatePresence>
+          {showCardSelector && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setShowCardSelector(false)}
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden z-10"
+              >
+                <div className="p-6 border-b border-zinc-100">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-zinc-900">Your Cards</h3>
+                    <button onClick={() => setShowCardSelector(false)} className="text-zinc-400 hover:text-zinc-900">
+                      <X size={20}/>
+                    </button>
+                  </div>
+                  <p className="text-sm text-zinc-500 mt-1">Select a card to view or manage</p>
+                </div>
+                
+                <div className="p-6 overflow-y-auto max-h-[60vh]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {cards.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          switchCard(c.id);
+                          setShowCardSelector(false);
+                        }}
+                        className={`relative overflow-hidden rounded-xl border-2 transition-all ${
+                          c.id === card.id 
+                            ? 'border-zinc-900 bg-zinc-50' 
+                            : 'border-zinc-200 hover:border-zinc-400 bg-white'
+                        }`}
+                      >
+                        {/* NFC Card Style Preview */}
+                        <div className="aspect-[1.6/1] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-4 relative">
+                          {/* NFC Pattern */}
+                          <div className="absolute inset-0 opacity-5">
+                            <div className="absolute top-0 right-0 w-20 h-20 border border-white rounded-full"></div>
+                            <div className="absolute bottom-0 left-0 w-24 h-24 border border-white rounded-full"></div>
+                          </div>
+                          
+                          {/* Active Badge */}
+                          {c.id === card.id && (
+                            <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                              Active
+                            </div>
+                          )}
+                          
+                          {/* NFC Icon */}
+                          <div className="absolute top-2 left-2 flex items-center gap-1 text-white/40">
+                            <Wifi size={10} className="rotate-90" />
+                            <span className="text-[7px] font-bold tracking-wider">NFC</span>
+                          </div>
+                          
+                          {/* QR Code */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="bg-white p-2 rounded-lg shadow-lg">
+                              <QRCodeSVG 
+                                value={`${window.location.origin}/#/c/${c.id}`} 
+                                size={60}
+                                level="H"
+                                imageSettings={{
+                                  src: c.avatarUrl,
+                                  height: 12,
+                                  width: 12,
+                                  excavate: true,
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Card Info */}
+                          <div className="absolute bottom-2 left-2 right-2 text-white">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
+                                <img src={c.avatarUrl} alt="" className="w-full h-full object-cover" />
+                              </div>
+                              <div className="text-left flex-1 min-w-0">
+                                <p className="text-[10px] font-bold leading-tight truncate">{c.displayName}</p>
+                                <p className="text-[8px] text-white/60 truncate">{c.title}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Card Details */}
+                        <div className="p-3 bg-white">
+                          <p className="font-semibold text-sm text-zinc-900 truncate">{c.displayName}</p>
+                          <p className="text-xs text-zinc-500 truncate">{c.company || 'No company'}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+        
+        {/* New Card Modal */}
+        <AnimatePresence>
+          {showNewCardModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setShowNewCardModal(false)}
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10"
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-zinc-900">Create New Card</h3>
+                  <button onClick={() => setShowNewCardModal(false)} className="text-zinc-400 hover:text-zinc-900">
+                    <X size={20}/>
+                  </button>
+                </div>
+                
+                <p className="text-sm text-zinc-500 mb-4">
+                  Create additional business cards for friends, family members, or different personas.
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-2">Card Name</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g., John's Card, Family Card"
+                      value={newCardName}
+                      onChange={(e) => setNewCardName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleCreateCard()}
+                      className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 transition-all"
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3 pt-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setShowNewCardModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-zinc-900" 
+                      onClick={handleCreateCard}
+                      disabled={!newCardName.trim() || isCreating}
+                    >
+                      {isCreating ? (
+                        <><LoadingSpinner className="w-4 h-4 mr-2" /> Creating...</>
+                      ) : (
+                        <><QrCode size={16} className="mr-2" /> Create Card</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
       
       <style>{`
