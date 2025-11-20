@@ -1,6 +1,7 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider, useAppStore } from './store';
+import { AuthProvider, useUser } from './lib/auth';
+import { AppProvider } from './store';
 import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
@@ -8,10 +9,11 @@ import { PublicProfile } from './pages/PublicProfile';
 import { YouTubeProfile } from './pages/YouTubeProfile';
 import { NFC } from './pages/NFC';
 import { Settings } from './pages/Settings';
+import { CardView } from './pages/CardView';
 
-// Explicitly define children props for React 18+
+// Private route wrapper using Supabase Auth
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAppStore();
+  const user = useUser();
   return user ? <>{children}</> : <Navigate to="/" />;
 };
 
@@ -21,6 +23,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/preview" element={<PublicProfile />} />
       <Route path="/youtube-profile" element={<YouTubeProfile />} />
+      <Route path="/c/:cardId" element={<CardView />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/editor" element={<PrivateRoute><Editor /></PrivateRoute>} />
       <Route path="/nfc" element={<PrivateRoute><NFC /></PrivateRoute>} />
@@ -32,11 +35,13 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <AppProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </AppProvider>
+    </AuthProvider>
   );
 };
 

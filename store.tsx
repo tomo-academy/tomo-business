@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUser } from './lib/auth';
 import { CardData, User, SocialLink, YouTubeCardData } from './types';
 import { getYouTubeChannelDetails } from './services/gemini';
+import { db } from './lib/database';
 
 interface AppState {
   user: User | null;
