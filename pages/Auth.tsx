@@ -3,7 +3,8 @@ import { useAuth } from '../lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/database';
 import { Button } from '../components/ui/Button';
-import { LogIn, UserPlus, Mail, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { Logo } from '../components/ui/Logo';
+import { LogIn, UserPlus, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const { user, signIn, signUp } = useAuth();
@@ -45,14 +46,23 @@ export const Auth: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/#/dashboard`
+          redirectTo: `${window.location.origin}/#/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
+      
+      if (error) throw error;
+      
+      // OAuth will redirect, so we don't need to setLoading(false)
     } catch (err: any) {
-      setError(err.message || 'Google sign-in failed');
+      console.error('Google OAuth error:', err);
+      setError(err.message || 'Google sign-in failed. Make sure Google OAuth is configured in Supabase.');
       setLoading(false);
     }
   };
@@ -61,14 +71,19 @@ export const Auth: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/#/dashboard`
         }
       });
+      
+      if (error) throw error;
+      
+      // OAuth will redirect, so we don't need to setLoading(false)
     } catch (err: any) {
-      setError(err.message || 'GitHub sign-in failed');
+      console.error('GitHub OAuth error:', err);
+      setError(err.message || 'GitHub sign-in failed. Make sure GitHub OAuth is configured in Supabase.');
       setLoading(false);
     }
   };
@@ -80,12 +95,7 @@ export const Auth: React.FC = () => {
         {/* Left Side - Branding */}
         <div className="hidden lg:flex flex-col justify-center space-y-6 p-8">
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-                <Sparkles className="text-white" size={24} />
-              </div>
-              <h1 className="text-4xl font-bold text-zinc-900">TOMO BUSINESS</h1>
-            </div>
+            <Logo className="scale-150 origin-left" />
             <p className="text-2xl font-bold text-zinc-700 leading-tight">
               Your Digital Identity,<br />Beautifully Crafted
             </p>
@@ -129,11 +139,8 @@ export const Auth: React.FC = () => {
         <div className="w-full max-w-md mx-auto">
           <div className="bg-white rounded-2xl shadow-2xl border border-zinc-200 p-8">
             <div className="text-center mb-8">
-              <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                  <Sparkles className="text-white" size={20} />
-                </div>
-                <h1 className="text-2xl font-bold text-zinc-900">TOMO</h1>
+              <div className="lg:hidden flex justify-center mb-4">
+                <Logo />
               </div>
               <h2 className="text-2xl font-bold text-zinc-900 mb-2">
                 {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
