@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../lib/auth';
 import { Button } from '../components/ui/Button';
 import { ArrowRight, Zap, Globe, ShieldCheck, Smartphone, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -7,6 +8,14 @@ import { Logo } from '../components/ui/Logo';
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const user = useUser();
+  
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans">
