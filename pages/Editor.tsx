@@ -115,6 +115,22 @@ export const Editor: React.FC = () => {
 
   return (
     <Layout>
+      {/* Mobile Sticky Save Button */}
+      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
+        <Button 
+          onClick={handleSave}
+          disabled={!hasChanges || saving}
+          className={`w-full shadow-2xl ${
+            hasChanges 
+              ? 'bg-zinc-900 hover:bg-zinc-800 text-white' 
+              : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+          }`}
+        >
+          <Save size={16} className="mr-2" />
+          {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'No Changes'}
+        </Button>
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-100px)]">
         
         {/* Editor Panel */}
@@ -423,9 +439,9 @@ export const Editor: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Preview Panel */}
-        <div className="w-full lg:w-[400px] hidden md:flex flex-col bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner">
-           {/* Save Button Header */}
+        {/* Live Preview Panel - Desktop Only, Mobile shows at bottom of editor */}
+        <div className="w-full lg:w-[400px] hidden lg:flex flex-col bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner">
+           {/* Save Button Header - Desktop */}
            <div className="p-4 border-b border-zinc-200 bg-white rounded-t-xl">
                <Button 
                  onClick={handleSave}
@@ -449,6 +465,17 @@ export const Editor: React.FC = () => {
              
              <CardPreview card={localCard} />
            </div>
+        </div>
+        
+        {/* Mobile Preview Section - Shows below editor */}
+        <div className="lg:hidden w-full bg-zinc-50 rounded-xl border border-zinc-200 p-6 pb-24">
+          <div className="mb-6 text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Live Preview</p>
+          </div>
+          
+          <div className="flex justify-center">
+            <CardPreview card={localCard} />
+          </div>
         </div>
       </div>
     </Layout>

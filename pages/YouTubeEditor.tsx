@@ -84,18 +84,32 @@ export const YouTubeEditor: React.FC = () => {
 
   return (
     <Layout>
-      <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Mobile Sticky Save Button */}
+      {youtubeCard && (
+        <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className={`w-full shadow-2xl ${hasChanges ? 'bg-zinc-900 text-white' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'}`}
+          >
+            <Save size={16} className="mr-2" />
+            {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved'}
+          </Button>
+        </div>
+      )}
+
+      <div className="space-y-8 animate-in fade-in duration-500 pb-24 md:pb-8">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">YouTube Creator Card</h1>
-            <p className="text-zinc-500 mt-2">Generate and customize your YouTube business card</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">YouTube Creator Card</h1>
+            <p className="text-zinc-500 mt-2 text-sm md:text-base">Generate and customize your YouTube business card</p>
           </div>
           {youtubeCard && (
             <Button
               onClick={handleSave}
               disabled={!hasChanges || saving}
-              className={hasChanges ? 'bg-zinc-900' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'}
+              className={`hidden md:flex ${hasChanges ? 'bg-zinc-900' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'}`}
             >
               <Save size={16} className="mr-2" />
               {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved'}
