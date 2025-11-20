@@ -389,7 +389,7 @@ export const CardView: React.FC = () => {
           
           <div className="inline-block p-4 bg-white rounded-lg">
             <QRCodeSVG
-              value={window.location.href}
+              value={`${window.location.origin}/#/c/${card.id}`}
               size={200}
               level="H"
               fgColor={card.theme.primaryColor}

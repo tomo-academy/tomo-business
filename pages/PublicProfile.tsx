@@ -191,7 +191,7 @@ END:VCARD`;
           {showQR && (
             <div className="absolute inset-0 bg-zinc-900/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 animate-in fade-in duration-200">
                <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
-                  <QRCodeSVG value={`https://tomo.business/u/${card.id}`} size={200} />
+                  <QRCodeSVG value={`${window.location.origin}/#/c/${card.id}`} size={200} />
                   <p className="mt-6 text-zinc-900 font-bold text-lg">Scan to Connect</p>
                   <p className="text-zinc-500 text-sm">Share this QR code with others</p>
                </div>

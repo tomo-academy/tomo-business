@@ -139,14 +139,52 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Right: QR & Quick Stats */}
-            <div className="w-full md:w-72 bg-zinc-50/50 p-6 md:p-8 flex flex-col items-center justify-center gap-4">
-                <div className="bg-white p-3 rounded-xl border border-zinc-200 shadow-sm">
-                     <QRCodeSVG value={`${window.location.origin}/#/preview`} size={100} />
+            {/* Right: NFC Card Style with QR */}
+            <div className="w-full md:w-80 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6 md:p-8 flex flex-col items-center justify-between relative overflow-hidden">
+                {/* NFC Pattern Background */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute top-0 right-0 w-32 h-32 border-2 border-white rounded-full"></div>
+                  <div className="absolute bottom-0 left-0 w-40 h-40 border-2 border-white rounded-full"></div>
                 </div>
-                <div className="text-center">
-                    <p className="text-xs text-zinc-400 uppercase tracking-widest font-semibold mb-1">Your Digital ID</p>
-                    <p className="text-xs text-zinc-400 truncate max-w-[180px] select-all">tomo.business/u/{card.id}</p>
+
+                {/* NFC Icon */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 text-white/60">
+                  <Wifi size={16} className="rotate-90" />
+                  <span className="text-[10px] font-bold tracking-wider">NFC ENABLED</span>
+                </div>
+
+                {/* QR Code - Larger and centered */}
+                <div className="flex-1 flex items-center justify-center z-10 py-4">
+                  <div className="bg-white p-4 rounded-2xl shadow-2xl">
+                    <QRCodeSVG 
+                      value={`${window.location.origin}/#/c/${card.id}`} 
+                      size={140}
+                      level="H"
+                      imageSettings={{
+                        src: card.avatarUrl,
+                        height: 28,
+                        width: 28,
+                        excavate: true,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Card Info */}
+                <div className="text-center text-white z-10 space-y-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/20">
+                      <img src={card.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-bold leading-tight">{card.displayName}</p>
+                      <p className="text-[10px] text-white/60">{card.title}</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">Scan to Connect</p>
+                    <p className="text-[11px] text-white/70 font-mono">ID: {card.id.slice(0, 8)}</p>
+                  </div>
                 </div>
             </div>
         </div>
@@ -361,8 +399,19 @@ export const Dashboard: React.FC = () => {
                                 </div>
                             </div>
                             
-                            <div className="pt-4 border-t border-zinc-100">
-                                <Button className="w-full" onClick={() => setShowYtSettings(false)}>Done</Button>
+                            <div className="pt-4 border-t border-zinc-100 flex gap-3">
+                                <Button variant="outline" className="flex-1" onClick={() => setShowYtSettings(false)}>Cancel</Button>
+                                <Button className="flex-1 bg-zinc-900" onClick={() => {
+                                  setShowYtSettings(false);
+                                  // Show toast notification
+                                  const toast = document.createElement('div');
+                                  toast.className = 'fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+                                  toast.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-sm font-medium">YouTube card settings saved!</span>';
+                                  document.body.appendChild(toast);
+                                  setTimeout(() => toast.remove(), 3000);
+                                }}>
+                                  <CheckCircle2 size={16} className="mr-1" /> Save Changes
+                                </Button>
                             </div>
                         </div>
                     </motion.div>

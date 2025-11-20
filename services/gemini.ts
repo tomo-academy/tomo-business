@@ -27,6 +27,30 @@ export const generateBio = async (name: string, role: string, keywords: string, 
   }
 };
 
+export const generateYouTubeDescription = async (channelName: string, channelUrl: string): Promise<string> => {
+  try {
+    const model = "gemini-2.5-flash";
+    const prompt = `Write a short, engaging description for a YouTube channel.
+    Channel Name: ${channelName}
+    Channel URL: ${channelUrl}
+    
+    Keep it under 120 characters. Make it catchy and professional. No hashtags.`;
+
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
+    });
+
+    return response.text?.trim() || "Content creator sharing amazing videos with the world.";
+  } catch (error) {
+    console.error("Error generating YouTube description:", error);
+    return "Content creator sharing amazing videos with the world.";
+  }
+};
+
 export const getYouTubeChannelDetails = async (url: string) => {
   try {
     const model = "gemini-2.5-flash";

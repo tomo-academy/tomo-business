@@ -206,10 +206,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const handle = data?.handle || (url.includes("@") ? "@" + url.split("@")[1] : "@unknown");
     const subscribers = data?.subscribers || "0";
     const videosCount = data?.videosCount || "0";
-    const description = data?.description || "Official YouTube Channel";
     const totalViews = data?.totalViews || "0";
     const location = data?.location || "Global";
     
+    // Auto-fetch logo and banner from API data
     const logoUrl = data?.logoUrl && data.logoUrl.startsWith('http') 
         ? data.logoUrl 
         : card.avatarUrl; // Fallback to user avatar
@@ -217,6 +217,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const bannerUrl = data?.bannerUrl && data.bannerUrl.startsWith('http')
         ? data.bannerUrl
         : undefined;
+
+    // Generate AI description using Gemini
+    const { generateYouTubeDescription } = await import('./services/gemini');
+    const description = data?.description || await generateYouTubeDescription(channelName, url);
 
     const newCard: YouTubeCardData = {
         channelName,
