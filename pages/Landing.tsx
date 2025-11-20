@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '../store';
 import { Button } from '../components/ui/Button';
 import { ArrowRight, Zap, Globe, ShieldCheck, Smartphone, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,14 +7,6 @@ import { Logo } from '../components/ui/Logo';
 
 export const Landing: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAppStore();
-  const [email, setEmail] = useState('');
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    login(email || 'user@example.com');
-    navigate('/dashboard');
-  };
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans">
@@ -135,42 +126,6 @@ export const Landing: React.FC = () => {
               desc="Your digital card looks perfect on every device, loading instantly with a premium feel."
             />
           </div>
-        </div>
-      </section>
-
-      {/* Login Section */}
-      <section id="login-section" className="py-24 px-6">
-        <div className="max-w-md mx-auto">
-          <div className="text-center mb-8">
-             <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
-             <p className="text-zinc-500 mt-2">Enter your email to access your dashboard.</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-xl">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1.5">Email Address</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-2.5 text-zinc-900 focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all"
-                  placeholder="you@company.com"
-                />
-              </div>
-              <Button className="w-full justify-center h-11 text-sm" variant="primary">Continue with Email</Button>
-              
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-200"></div></div>
-                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-zinc-400 font-medium">Or</span></div>
-              </div>
-              
-              <Button type="button" variant="secondary" className="w-full justify-center h-11" onClick={(e) => handleLogin(e)}>
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
-                Continue with Google
-              </Button>
-            </div>
-          </form>
         </div>
       </section>
       

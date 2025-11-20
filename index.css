@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@layer base {
+  body {
+    @apply bg-zinc-100 text-zinc-900 antialiased;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-300 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-400;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth animations */
+* {
+  @apply transition-colors duration-200;
+}

@@ -270,6 +270,40 @@ export const db = {
     };
   },
 
+  // Alias for compatibility
+  async getAnalytics(cardId: string, type: string, startDate: string, endDate: string) {
+    const { data: views } = await supabase
+      .from('card_views')
+      .select('*')
+      .eq('card_id', cardId)
+      .gte('viewed_at', startDate)
+      .lte('viewed_at', endDate);
+
+    const { data: clicks } = await supabase
+      .from('card_clicks')
+      .select('*')
+      .eq('card_id', cardId)
+      .gte('clicked_at', startDate)
+      .lte('clicked_at', endDate);
+
+    const { count: totalViews } = await supabase
+      .from('card_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('card_id', cardId);
+
+    const { count: totalClicks } = await supabase
+      .from('card_clicks')
+      .select('*', { count: 'exact', head: true })
+      .eq('card_id', cardId);
+
+    return {
+      views: views || [],
+      clicks: clicks || [],
+      totalViews: totalViews || 0,
+      totalClicks: totalClicks || 0
+    };
+  },
+
   // YouTube cards operations
   async getUserYouTubeCards(userId: string) {
     const { data, error } = await supabase
