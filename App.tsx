@@ -10,6 +10,9 @@ import { YouTubeProfile } from './pages/YouTubeProfile';
 import { NFC } from './pages/NFC';
 import { Settings } from './pages/Settings';
 import { CardView } from './pages/CardView';
+import { Templates } from './pages/Templates';
+import { EmailSignature } from './pages/EmailSignature';
+import { Analytics } from './pages/Analytics';
 
 // Private route wrapper using Supabase Auth
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -28,6 +31,9 @@ const AppRoutes = () => {
       <Route path="/editor" element={<PrivateRoute><Editor /></PrivateRoute>} />
       <Route path="/nfc" element={<PrivateRoute><NFC /></PrivateRoute>} />
       <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/templates" element={<PrivateRoute><Templates /></PrivateRoute>} />
+      <Route path="/email-signature" element={<PrivateRoute><EmailSignature /></PrivateRoute>} />
+      <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

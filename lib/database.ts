@@ -127,6 +127,44 @@ export const db = {
     if (error) throw error;
   },
 
+  async duplicateCard(cardId: string, userId: string) {
+    // Get the original card
+    const original = await this.getCardById(cardId);
+    if (!original) throw new Error('Card not found');
+
+    // Create new card with same data
+    const newCard = await this.createCard(userId, {
+      displayName: `${original.display_name} (Copy)`,
+      title: original.title,
+      bio: original.bio,
+      company: original.company,
+      location: original.location,
+      email: original.email,
+      phone: original.phone,
+      avatarUrl: original.avatar_url,
+      coverUrl: original.cover_url,
+      theme: {
+        primaryColor: original.theme_primary_color,
+        backgroundColor: original.theme_background_color,
+        fontFamily: original.theme_font_family,
+        layout: original.theme_layout
+      }
+    });
+
+    // Copy all links
+    const links = await this.getCardLinks(cardId);
+    for (const link of links) {
+      await this.addCardLink(newCard.id, {
+        platform: link.platform,
+        url: link.url,
+        label: link.label,
+        position: link.position
+      });
+    }
+
+    return newCard;
+  },
+
   // Card links operations
   async getCardLinks(cardId: string) {
     const { data, error } = await supabase
