@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useUser } from './lib/auth';
 import { AppProvider } from './store';
 import { Landing } from './pages/Landing';
+import { Auth } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 import { PublicProfile } from './pages/PublicProfile';
@@ -24,6 +25,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/auth" element={<Auth />} />
       <Route path="/preview" element={<PublicProfile />} />
       <Route path="/youtube-profile" element={<YouTubeProfile />} />
       <Route path="/c/:cardId" element={<CardView />} />

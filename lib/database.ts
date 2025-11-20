@@ -213,20 +213,23 @@ export const db = {
         user_agent: metadata.userAgent,
         referer: metadata.referer,
         country: metadata.country,
-        city: metadata.city
+        city: metadata.city,
+        viewed_at: new Date().toISOString()
       });
     
     if (error) console.error('Error tracking view:', error);
   },
 
-  async trackClick(cardId: string, linkId: string | null, platform: string, ipHash: string) {
+  async trackClick(cardId: string, linkId: string | null, platform: string, ipHash: string, linkUrl?: string) {
     const { error } = await supabase
       .from('card_clicks')
       .insert({
         card_id: cardId,
         link_id: linkId,
         platform,
-        ip_hash: ipHash
+        ip_hash: ipHash,
+        link_url: linkUrl,
+        clicked_at: new Date().toISOString()
       });
     
     if (error) console.error('Error tracking click:', error);

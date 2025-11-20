@@ -69,13 +69,13 @@ export const Analytics: React.FC = () => {
     const uniqueIPs = new Set();
 
     views.forEach(view => {
-      const date = new Date(view.created_at).toLocaleDateString();
+      const date = new Date(view.viewed_at || view.created_at).toLocaleDateString();
       viewsByDate[date] = (viewsByDate[date] || 0) + 1;
-      uniqueIPs.add(view.ip_hash);
+      if (view.ip_hash) uniqueIPs.add(view.ip_hash);
     });
 
     clicks.forEach(click => {
-      const date = new Date(click.created_at).toLocaleDateString();
+      const date = new Date(click.clicked_at || click.created_at).toLocaleDateString();
       clicksByDate[date] = (clicksByDate[date] || 0) + 1;
     });
 
@@ -102,7 +102,7 @@ export const Analytics: React.FC = () => {
     // Time distribution
     const hours: { [key: number]: number } = {};
     views.forEach(view => {
-      const hour = new Date(view.created_at).getHours();
+      const hour = new Date(view.viewed_at || view.created_at).getHours();
       hours[hour] = (hours[hour] || 0) + 1;
     });
 

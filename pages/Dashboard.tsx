@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { useAppStore } from '../store';
+import { db } from '../lib/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { ArrowUpRight, Users, Eye, MousePointer, Smartphone, Calendar, Share2, Edit, ExternalLink, QrCode, Youtube, Wand2, Play, Trash2, Settings, Wifi, CheckCircle2, X, Globe, Mail, Phone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -9,24 +10,70 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
-// Mock Data for Analytics
-const viewData = [
-  { name: 'Mon', views: 40, clicks: 24 },
-  { name: 'Tue', views: 30, clicks: 13 },
-  { name: 'Wed', views: 20, clicks: 98 },
-  { name: 'Thu', views: 27, clicks: 39 },
-  { name: 'Fri', views: 18, clicks: 48 },
-  { name: 'Sat', views: 23, clicks: 38 },
-  { name: 'Sun', views: 34, clicks: 43 },
-];
-
 export const Dashboard: React.FC = () => {
   const { user, card, youtubeCard, generateYouTubeCard, removeYouTubeCard, updateYouTubeCard } = useAppStore();
   const [ytInput, setYtInput] = useState('');
   const [isGeneratingYt, setIsGeneratingYt] = useState(false);
   const [showYtSettings, setShowYtSettings] = useState(false);
+  const [viewData, setViewData] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState({ totalViews: 0, totalClicks: 0, uniqueVisitors: 0 });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [card.id]);
+
+  const loadAnalytics = async () => {
+    if (!card.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      
+      const data = await db.getAnalytics(card.id, 'view', startDate.toISOString(), new Date().toISOString());
+      
+      // Process data for chart
+      const viewsByDate: { [key: string]: { views: number; clicks: number } } = {};
+      
+      data.views.forEach((view: any) => {
+        const date = new Date(view.viewed_at || view.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!viewsByDate[date]) viewsByDate[date] = { views: 0, clicks: 0 };
+        viewsByDate[date].views++;
+      });
+      
+      data.clicks.forEach((click: any) => {
+        const date = new Date(click.clicked_at || click.created_at).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!viewsByDate[date]) viewsByDate[date] = { views: 0, clicks: 0 };
+        viewsByDate[date].clicks++;
+      });
+      
+      const chartData = Object.entries(viewsByDate).map(([name, stats]) => ({
+        name,
+        ...stats
+      }));
+      
+      setViewData(chartData.length > 0 ? chartData : [{ name: 'No data', views: 0, clicks: 0 }]);
+      
+      // Calculate unique visitors from IP hashes
+      const uniqueIPs = new Set(data.views.map((v: any) => v.ip_hash).filter(Boolean));
+      
+      setAnalytics({
+        totalViews: data.totalViews,
+        totalClicks: data.totalClicks,
+        uniqueVisitors: uniqueIPs.size
+      });
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      setViewData([{ name: 'Error', views: 0, clicks: 0 }]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleYtGenerate = async () => {
     if(!ytInput) return;
@@ -336,10 +383,10 @@ export const Dashboard: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Views" value="1,234" change="+12.5%" icon={Eye} />
-          <StatCard label="Link Clicks" value="856" change="+5.2%" icon={MousePointer} />
-          <StatCard label="New Contacts" value="48" change="+18%" icon={Users} />
-          <StatCard label="NFC Taps" value="156" change="+2.4%" icon={Smartphone} />
+          <StatCard label="Total Views" value={analytics.totalViews.toLocaleString()} change="+12.5%" icon={Eye} />
+          <StatCard label="Link Clicks" value={analytics.totalClicks.toLocaleString()} change="+5.2%" icon={MousePointer} />
+          <StatCard label="Unique Visitors" value={analytics.uniqueVisitors.toLocaleString()} change="+18%" icon={Users} />
+          <StatCard label="Engagement" value={`${analytics.totalViews > 0 ? ((analytics.totalClicks / analytics.totalViews) * 100).toFixed(1) : 0}%`} change="+2.4%" icon={Smartphone} />
         </div>
 
         {/* Main Chart */}

@@ -31,14 +31,14 @@ export const Landing: React.FC = () => {
              <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => document.getElementById('login-section')?.scrollIntoView({behavior: 'smooth'})}
+                onClick={() => navigate('/auth')}
              >
                Log in
              </Button>
              <Button 
                 variant="primary" 
                 size="sm"
-                onClick={() => document.getElementById('login-section')?.scrollIntoView({behavior: 'smooth'})}
+                onClick={() => navigate('/auth')}
              >
                Get Started
              </Button>
@@ -67,10 +67,10 @@ export const Landing: React.FC = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-             <Button size="lg" className="h-14 px-8 text-base rounded-full" onClick={() => document.getElementById('login-section')?.scrollIntoView({behavior: 'smooth'})}>
+             <Button size="lg" className="h-14 px-8 text-base rounded-full" onClick={() => navigate('/auth')}>
                Create Your Card <ArrowRight className="ml-2 w-4 h-4" />
              </Button>
-             <Button variant="outline" size="lg" className="h-14 px-8 text-base rounded-full bg-white">
+             <Button variant="outline" size="lg" className="h-14 px-8 text-base rounded-full bg-white" onClick={() => navigate('/c/demo')}>
                 View Example
              </Button>
           </div>

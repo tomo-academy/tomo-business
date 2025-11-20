@@ -48,31 +48,151 @@ const defaultCard: CardData = {
 const AppContext = createContext<AppState | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const supabaseUser = useUser();
   const [user, setUser] = useState<User | null>(null);
   const [card, setCard] = useState<CardData>(defaultCard);
   const [youtubeCard, setYoutubeCard] = useState<YouTubeCardData | null>(null);
 
+  // Sync with Supabase user
+  useEffect(() => {
+    if (supabaseUser) {
+      loadUserData();
+    } else {
+      setUser(null);
+      setCard(defaultCard);
+    }
+  }, [supabaseUser]);
+
+  const loadUserData = async () => {
+    if (!supabaseUser) return;
+
+    try {
+      // Load or create user in database
+      let userData = await db.getUser(supabaseUser.id);
+      if (!userData) {
+        userData = await db.createUser({
+          id: supabaseUser.id,
+          email: supabaseUser.email!,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+          avatar_url: supabaseUser.user_metadata?.avatar_url
+        });
+      }
+
+      setUser({
+        id: userData.id,
+        name: userData.name || userData.email,
+        email: userData.email,
+        plan: 'pro'
+      });
+
+      // Load user's cards
+      const cards = await db.getUserCards(supabaseUser.id);
+      if (cards.length > 0) {
+        const firstCard = cards[0];
+        setCard({
+          id: firstCard.id,
+          displayName: firstCard.display_name,
+          title: firstCard.title || '',
+          bio: firstCard.bio || '',
+          avatarUrl: firstCard.avatar_url || defaultCard.avatarUrl,
+          coverUrl: firstCard.cover_url || defaultCard.coverUrl,
+          company: firstCard.company || '',
+          location: firstCard.location || '',
+          email: firstCard.email || userData.email,
+          phone: firstCard.phone || '',
+          links: [],
+          theme: {
+            primaryColor: firstCard.theme_primary_color || '#000000',
+            backgroundColor: firstCard.theme_background_color || '#FFFFFF',
+            fontFamily: firstCard.theme_font_family || 'Inter',
+            layout: firstCard.theme_layout || 'modern'
+          },
+          nfcActive: false
+        });
+
+        // Load card links
+        const links = await db.getCardLinks(firstCard.id);
+        setCard(prev => ({
+          ...prev,
+          links: links.map((l: any) => ({
+            id: l.id,
+            platform: l.platform,
+            url: l.url,
+            label: l.label
+          }))
+        }));
+      } else {
+        // Create default card for new user
+        const newCard = await db.createCard(supabaseUser.id, {
+          ...defaultCard,
+          displayName: userData.name || 'Your Name',
+          email: userData.email
+        });
+        
+        setCard({
+          ...defaultCard,
+          id: newCard.id,
+          displayName: userData.name || 'Your Name',
+          email: userData.email
+        });
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
   const login = (email: string) => {
-    setUser({
-      id: 'u1',
-      name: 'Alex Johnson',
-      email,
-      plan: 'pro'
-    });
+    // This is now handled by Supabase Auth
+    console.log('Use Supabase auth instead');
   };
 
-  const logout = () => setUser(null);
+  const logout = async () => {
+    // This is now handled by Supabase Auth
+    console.log('Use Supabase signOut instead');
+  };
 
-  const updateCard = (updates: Partial<CardData>) => {
+  const updateCard = async (updates: Partial<CardData>) => {
     setCard(prev => ({ ...prev, ...updates }));
+    
+    // Update in database
+    if (card.id && supabaseUser) {
+      try {
+        await db.updateCard(card.id, updates);
+      } catch (error) {
+        console.error('Error updating card:', error);
+      }
+    }
   };
 
-  const addLink = (link: SocialLink) => {
+  const addLink = async (link: SocialLink) => {
     setCard(prev => ({ ...prev, links: [...prev.links, link] }));
+    
+    // Add to database
+    if (card.id && supabaseUser) {
+      try {
+        await db.addCardLink(card.id, {
+          platform: link.platform,
+          url: link.url,
+          label: link.label,
+          position: card.links.length
+        });
+      } catch (error) {
+        console.error('Error adding link:', error);
+      }
+    }
   };
 
-  const removeLink = (id: string) => {
+  const removeLink = async (id: string) => {
     setCard(prev => ({ ...prev, links: prev.links.filter(l => l.id !== id) }));
+    
+    // Remove from database
+    if (supabaseUser) {
+      try {
+        await db.deleteCardLink(id);
+      } catch (error) {
+        console.error('Error removing link:', error);
+      }
+    }
   };
 
   const generateYouTubeCard = async (url: string) => {
