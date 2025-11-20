@@ -9,6 +9,7 @@ interface AppState {
   card: CardData;
   cards: CardData[];
   youtubeCard: YouTubeCardData | null;
+  youtubeCards: Array<YouTubeCardData & { id: string }>;
   youtubeCardId: string | null;
   login: (email: string) => void;
   logout: () => void;
@@ -21,6 +22,8 @@ interface AppState {
   switchCard: (cardId: string) => void;
   createNewCard: (name: string) => Promise<void>;
   deleteCard: (cardId: string) => Promise<void>;
+  switchYouTubeCard: (cardId: string) => void;
+  deleteYouTubeCard: (cardId: string) => Promise<void>;
 }
 
 const defaultCard: CardData = {
@@ -58,6 +61,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [card, setCard] = useState<CardData>(defaultCard);
   const [cards, setCards] = useState<CardData[]>([]);
   const [youtubeCard, setYoutubeCard] = useState<YouTubeCardData | null>(null);
+  const [youtubeCards, setYoutubeCards] = useState<Array<YouTubeCardData & { id: string }>>([]);
   const [youtubeCardId, setYoutubeCardId] = useState<string | null>(null);
 
   // Sync with Supabase user
@@ -166,12 +170,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         );
         setCards(allCardsData);
         
-        // Load YouTube cards
-        const youtubeCards = await db.getUserYouTubeCards(supabaseUser.id);
-        if (youtubeCards && youtubeCards.length > 0) {
-          const ytCard = youtubeCards[0]; // For now, use the first one
-          setYoutubeCardId(ytCard.id);
-          setYoutubeCard({
+        // Load all YouTube cards
+        const dbYoutubeCards = await db.getUserYouTubeCards(supabaseUser.id);
+        if (dbYoutubeCards && dbYoutubeCards.length > 0) {
+          const allYtCards = dbYoutubeCards.map((ytCard: any) => ({
+            id: ytCard.id,
             channelName: ytCard.channel_name,
             handle: ytCard.handle,
             subscribers: ytCard.subscribers,
@@ -188,7 +191,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               showVideos: ytCard.show_videos !== false,
               theme: ytCard.theme || 'dark'
             }
-          });
+          }));
+          
+          setYoutubeCards(allYtCards);
+          
+          // Set first card as active
+          const firstYtCard = allYtCards[0];
+          setYoutubeCardId(firstYtCard.id);
+          setYoutubeCard(firstYtCard);
         }
       } else {
         // Create default card for new user
@@ -325,7 +335,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         });
         if (savedCard) {
+          const newCardWithId = { ...newCard, id: savedCard.id };
           setYoutubeCardId(savedCard.id);
+          setYoutubeCards(prev => [...prev, newCardWithId]);
         }
       } catch (error) {
         console.error('Error saving YouTube card:', error);
@@ -337,6 +349,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (youtubeCardId && supabaseUser) {
       try {
         await db.deleteYouTubeCard(youtubeCardId);
+        setYoutubeCards(prev => prev.filter(c => c.id !== youtubeCardId));
       } catch (error) {
         console.error('Error deleting YouTube card:', error);
       }
@@ -348,7 +361,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateYouTubeCard = async (updates: Partial<YouTubeCardData>) => {
     if (!youtubeCard) return;
     
-    setYoutubeCard(prev => prev ? { ...prev, ...updates } : null);
+    const updatedCard = { ...youtubeCard, ...updates };
+    setYoutubeCard(updatedCard);
+    
+    // Update in array
+    if (youtubeCardId) {
+      setYoutubeCards(prev => prev.map(c => 
+        c.id === youtubeCardId ? { ...c, ...updates } : c
+      ));
+    }
     
     // Persist to database
     if (youtubeCardId && supabaseUser) {
@@ -357,6 +378,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } catch (error) {
         console.error('Error updating YouTube card:', error);
       }
+    }
+  };
+
+  const switchYouTubeCard = (cardId: string) => {
+    const selectedCard = youtubeCards.find(c => c.id === cardId);
+    if (selectedCard) {
+      setYoutubeCardId(cardId);
+      setYoutubeCard(selectedCard);
+    }
+  };
+
+  const deleteYouTubeCard = async (cardId: string) => {
+    if (!supabaseUser) return;
+    
+    try {
+      await db.deleteYouTubeCard(cardId);
+      const updatedCards = youtubeCards.filter(c => c.id !== cardId);
+      setYoutubeCards(updatedCards);
+      
+      // Switch to first card if current card was deleted, or clear if no cards left
+      if (youtubeCardId === cardId) {
+        if (updatedCards.length > 0) {
+          setYoutubeCardId(updatedCards[0].id);
+          setYoutubeCard(updatedCards[0]);
+        } else {
+          setYoutubeCardId(null);
+          setYoutubeCard(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting YouTube card:', error);
+      throw error;
     }
   };
 
@@ -416,6 +469,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       card,
       cards, 
       youtubeCard,
+      youtubeCards,
       youtubeCardId, 
       login, 
       logout, 
@@ -427,7 +481,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateYouTubeCard,
       switchCard,
       createNewCard,
-      deleteCard
+      deleteCard,
+      switchYouTubeCard,
+      deleteYouTubeCard
     }}>
       {children}
     </AppContext.Provider>
