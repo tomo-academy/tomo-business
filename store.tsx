@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from './lib/auth';
 import { CardData, User, SocialLink, YouTubeCardData } from './types';
-import { getYouTubeChannelDetails } from './services/gemini';
+import { getYouTubeChannelData } from './services/youtube';
 import { db } from './lib/database';
 
 interface AppState {
@@ -265,29 +265,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const generateYouTubeCard = async (url: string) => {
-    // Call Gemini API to get real details
-    const data = await getYouTubeChannelDetails(url);
+    // Call YouTube Data API v3 to get accurate details
+    const data = await getYouTubeChannelData(url);
 
-    // Fallbacks if API fails or returns partial data
-    const channelName = data?.channelName || "New Channel";
-    const handle = data?.handle || (url.includes("@") ? "@" + url.split("@")[1] : "@unknown");
-    const subscribers = data?.subscribers || "0";
-    const videosCount = data?.videosCount || "0";
-    const totalViews = data?.totalViews || "0";
-    const location = data?.location || "Global";
+    // All data is now accurate from YouTube API
+    const channelName = data.channelName;
+    const handle = data.handle;
+    const subscribers = data.subscribers;
+    const videosCount = data.videosCount;
+    const totalViews = data.totalViews;
+    const location = data.location || "Global";
     
-    // Auto-fetch logo and banner from API data
-    const logoUrl = data?.logoUrl && data.logoUrl.startsWith('http') 
-        ? data.logoUrl 
-        : card.avatarUrl; // Fallback to user avatar
-        
-    const bannerUrl = data?.bannerUrl && data.bannerUrl.startsWith('http')
-        ? data.bannerUrl
-        : undefined;
-
-    // Generate AI description using Gemini
-    const { generateYouTubeDescription } = await import('./services/gemini');
-    const description = data?.description || await generateYouTubeDescription(channelName, url);
+    // Use high-quality images from YouTube API
+    const logoUrl = data.logoUrl || card.avatarUrl; // Fallback to user avatar
+    const bannerUrl = data.bannerUrl || undefined;
+    
+    // Use description from YouTube API (official channel description)
+    const description = data.description || `Welcome to ${channelName}! Subscribe for amazing content.`;
 
     const newCard: YouTubeCardData = {
         channelName,
