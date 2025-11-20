@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Edit3, User as UserIcon, LogOut, Settings, CreditCard, ExternalLink, Menu, X, Sparkles, Mail, BarChart3, Youtube } from 'lucide-react';
+import { LayoutDashboard, Edit3, User as UserIcon, LogOut, Settings, CreditCard, ExternalLink, Menu, X, Sparkles, Mail, BarChart3, Youtube, Layers } from 'lucide-react';
 import { useAppStore } from '../store';
 import { cn } from '../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,6 +14,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Layers, label: 'My Cards', path: '/my-cards' },
     { icon: Edit3, label: 'Card Editor', path: '/editor' },
     { icon: Youtube, label: 'YouTube Card', path: '/youtube-editor' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },

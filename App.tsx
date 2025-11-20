@@ -6,6 +6,7 @@ import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
+import { MyCards } from './pages/MyCards';
 import { PublicProfile } from './pages/PublicProfile';
 import { YouTubeProfile } from './pages/YouTubeProfile';
 import { YouTubeEditor } from './pages/YouTubeEditor';
@@ -32,6 +33,7 @@ const AppRoutes = () => {
       <Route path="/youtube-profile" element={<YouTubeProfile />} />
       <Route path="/c/:cardId" element={<CardView />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/my-cards" element={<PrivateRoute><MyCards /></PrivateRoute>} />
       <Route path="/editor" element={<PrivateRoute><Editor /></PrivateRoute>} />
       <Route path="/youtube-editor" element={<PrivateRoute><YouTubeEditor /></PrivateRoute>} />
       <Route path="/nfc" element={<PrivateRoute><NFC /></PrivateRoute>} />
