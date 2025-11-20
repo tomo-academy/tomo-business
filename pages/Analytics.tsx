@@ -49,11 +49,10 @@ export const Analytics: React.FC = () => {
       else startDate.setFullYear(2020); // All time
 
       // Fetch analytics data
-      const views = await db.getAnalytics(card.id, 'view', startDate.toISOString(), now.toISOString());
-      const clicks = await db.getAnalytics(card.id, 'click', startDate.toISOString(), now.toISOString());
+      const result = await db.getAnalytics(card.id, 'view', startDate.toISOString(), now.toISOString());
 
       // Process data
-      const processedData = processAnalyticsData(views, clicks);
+      const processedData = processAnalyticsData(result.views, result.clicks);
       setData(processedData);
     } catch (error) {
       console.error('Error loading analytics:', error);

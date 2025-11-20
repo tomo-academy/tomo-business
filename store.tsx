@@ -107,6 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             fontFamily: firstCard.theme_font_family || 'Inter',
             layout: firstCard.theme_layout || 'modern'
           },
+          customDomain: firstCard.custom_domain || undefined,
+          customDomainStatus: firstCard.custom_domain_status || 'none',
           nfcActive: false
         });
 

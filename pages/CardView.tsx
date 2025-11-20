@@ -331,7 +331,6 @@ export const CardView: React.FC = () => {
                 onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                 required
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-opacity-50"
-                style={{ focusRing: card.theme.primaryColor }}
               />
               
               <input

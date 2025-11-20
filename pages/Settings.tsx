@@ -2,34 +2,64 @@ import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/Button';
 import { useAppStore } from '../store';
+import { useToast } from '../components/ui/Toast';
+import { db } from '../lib/database';
 import { Shield, CreditCard, Bell, Globe, CheckCircle2, AlertCircle, RefreshCw, Server, Copy } from 'lucide-react';
 
 export const Settings: React.FC = () => {
   const { user, card, logout, updateCard } = useAppStore();
+  const { showToast } = useToast();
   const [domainInput, setDomainInput] = useState(card.customDomain || '');
   const [verifying, setVerifying] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
-  const handleVerifyDomain = () => {
+  const handleConnectDomain = async () => {
     if (!domainInput) return;
     
-    setVerifying(true);
-    updateCard({ customDomain: domainInput, customDomainStatus: 'pending' });
-
-    // Simulate DNS verification with deterministic outcome
-    setTimeout(() => {
-      // Succeed for common TLDs, fail for others (for demo purposes)
-      const isValidTLD = /\.(com|net|io|biz|co)$/i.test(domainInput);
+    setConnecting(true);
+    try {
+      await db.connectCustomDomain(card.id, domainInput);
+      await updateCard({ customDomain: domainInput, customDomainStatus: 'pending' });
+      showToast('Domain connected! Verification in progress...', 'success');
       
-      updateCard({ 
-        customDomainStatus: isValidTLD ? 'active' : 'error' 
-      });
-      setVerifying(false);
-    }, 2000);
+      // Auto-verify after a short delay
+      setTimeout(() => handleVerifyDomain(), 2000);
+    } catch (error: any) {
+      showToast(error.message || 'Failed to connect domain', 'error');
+    } finally {
+      setConnecting(false);
+    }
   };
 
-  const handleRemoveDomain = () => {
-    setDomainInput('');
-    updateCard({ customDomain: undefined, customDomainStatus: 'none' });
+  const handleVerifyDomain = async () => {
+    if (!card.id) return;
+    
+    setVerifying(true);
+    try {
+      const result = await db.verifyCustomDomain(card.id);
+      if (result.verified) {
+        await updateCard({ customDomainStatus: 'active' });
+        showToast('Domain verified successfully!', 'success');
+      } else {
+        await updateCard({ customDomainStatus: 'error' });
+        showToast('Domain verification failed. Check DNS settings.', 'error');
+      }
+    } catch (error) {
+      showToast('Verification error', 'error');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleRemoveDomain = async () => {
+    try {
+      await db.removeCustomDomain(card.id);
+      setDomainInput('');
+      await updateCard({ customDomain: undefined, customDomainStatus: 'none' });
+      showToast('Custom domain removed', 'success');
+    } catch (error) {
+      showToast('Failed to remove domain', 'error');
+    }
   };
 
   return (
@@ -66,13 +96,22 @@ export const Settings: React.FC = () => {
                                 />
                                 {card.customDomainStatus === 'active' ? (
                                     <Button variant="outline" onClick={handleRemoveDomain} className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">Remove</Button>
-                                ) : (
+                                ) : card.customDomainStatus === 'pending' ? (
                                     <Button 
                                         onClick={handleVerifyDomain} 
-                                        disabled={verifying || !domainInput}
+                                        disabled={verifying}
+                                        className="min-w-[120px]"
+                                    >
+                                        {verifying ? <RefreshCw size={16} className="animate-spin mr-1" /> : <RefreshCw size={16} className="mr-1" />}
+                                        {verifying ? 'Verifying...' : 'Verify Now'}
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        onClick={handleConnectDomain} 
+                                        disabled={connecting || !domainInput}
                                         className="min-w-[100px]"
                                     >
-                                        {verifying ? <RefreshCw size={16} className="animate-spin" /> : 'Connect'}
+                                        {connecting ? <RefreshCw size={16} className="animate-spin" /> : 'Connect'}
                                     </Button>
                                 )}
                             </div>
@@ -86,9 +125,21 @@ export const Settings: React.FC = () => {
                                     </div>
                                 )}
                                 {card.customDomainStatus === 'error' && (
-                                    <div className="flex items-center gap-2 text-red-600 text-sm font-medium">
-                                        <AlertCircle size={16} />
-                                        <span>DNS record not found. Please check your configuration. (Try a .com domain)</span>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 text-red-600 text-sm font-medium">
+                                            <AlertCircle size={16} />
+                                            <span>DNS verification failed. Please check your configuration.</span>
+                                        </div>
+                                        <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            onClick={handleVerifyDomain}
+                                            disabled={verifying}
+                                            className="self-start"
+                                        >
+                                            <RefreshCw size={14} className={`mr-1 ${verifying ? 'animate-spin' : ''}`} />
+                                            Retry Verification
+                                        </Button>
                                     </div>
                                 )}
                                 {card.customDomainStatus === 'pending' && (

@@ -1,15 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { useAppStore } from '../store';
 import { Button } from '../components/ui/Button';
 import { generateBio } from '../services/gemini';
 import { 
   Plus, Trash2, Sparkles, Phone, Mail, MapPin, Link as LinkIcon, GripVertical, 
-  Camera, Image as ImageIcon, UploadCloud, Globe, Settings,
+  Camera, Image as ImageIcon, UploadCloud, Globe, Settings, Save,
   Instagram, Twitter, Linkedin, Github, Youtube, MessageCircle, Facebook, AlertCircle 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CardPreview } from '../components/CardPreview';
+import { useToast } from '../components/ui/Toast';
+import type { BusinessCard } from '../types';
 
 // Simple Input Component helper
 const Input = ({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
@@ -29,15 +31,46 @@ export const Editor: React.FC = () => {
   const [showAiOptions, setShowAiOptions] = useState(false);
   const [aiKeywords, setAiKeywords] = useState('');
   const [aiTone, setAiTone] = useState('professional');
+  const [saving, setSaving] = useState(false);
+  const { showToast } = useToast();
+  
+  // Local state for unsaved changes
+  const [localCard, setLocalCard] = useState<BusinessCard>(card);
+  const [hasChanges, setHasChanges] = useState(false);
   
   // Refs for file inputs
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Sync local state with store card on mount
+  useEffect(() => {
+    setLocalCard(card);
+  }, [card.id]);
+
+  // Check if there are unsaved changes
+  useEffect(() => {
+    const changed = JSON.stringify(localCard) !== JSON.stringify(card);
+    setHasChanges(changed);
+  }, [localCard, card]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateCard(localCard);
+      setHasChanges(false);
+      showToast('Changes saved successfully!', 'success');
+    } catch (error) {
+      showToast('Failed to save changes', 'error');
+      console.error('Save error:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleGenerateBio = async () => {
     setGenerating(true);
-    const bio = await generateBio(card.displayName, card.title, aiKeywords, aiTone);
-    updateCard({ bio });
+    const bio = await generateBio(localCard.displayName, localCard.title, aiKeywords, aiTone);
+    setLocalCard({ ...localCard, bio });
     setGenerating(false);
   };
 
@@ -46,10 +79,14 @@ export const Editor: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        updateCard({ [field]: reader.result as string });
+        setLocalCard({ ...localCard, [field]: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const updateLocalCard = (updates: Partial<BusinessCard>) => {
+    setLocalCard({ ...localCard, ...updates });
   };
 
   const getLinkIcon = (platform: string) => {
@@ -112,8 +149,8 @@ export const Editor: React.FC = () => {
                     {/* Cover Image Upload */}
                     <div className="space-y-2">
                         <div className="relative group cursor-pointer rounded-xl overflow-hidden h-36 bg-zinc-100 border border-zinc-200 transition-all hover:border-zinc-400" onClick={() => coverInputRef.current?.click()}>
-                            {card.coverUrl ? (
-                                <img src={card.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                            {localCard.coverUrl ? (
+                                <img src={localCard.coverUrl} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-zinc-400 flex-col gap-2">
                                     <ImageIcon size={24} />
@@ -138,9 +175,9 @@ export const Editor: React.FC = () => {
                                 <p className="text-[10px] text-zinc-400">Recommended: 1200x400px</p>
                             </div>
                             <div className="flex gap-2">
-                                {card.coverUrl && (
+                                {localCard.coverUrl && (
                                     <button 
-                                        onClick={() => updateCard({ coverUrl: '' })}
+                                        onClick={() => updateLocalCard({ coverUrl: '' })}
                                         className="text-[10px] text-red-500 hover:text-red-600 font-medium px-2 py-1"
                                     >
                                         Remove
@@ -148,7 +185,7 @@ export const Editor: React.FC = () => {
                                 )}
                                 <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => coverInputRef.current?.click()}>
                                     <UploadCloud size={12} className="mr-1.5" /> 
-                                    {card.coverUrl ? 'Change Cover' : 'Upload Cover'}
+                                    {localCard.coverUrl ? 'Change Cover' : 'Upload Cover'}
                                 </Button>
                             </div>
                         </div>
@@ -157,7 +194,7 @@ export const Editor: React.FC = () => {
                     {/* Avatar Upload */}
                     <div className="flex items-center gap-4 pt-2">
                          <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-zinc-100 group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
-                            <img src={card.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            <img src={localCard.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                                 <Camera size={16} className="text-white opacity-0 group-hover:opacity-100" />
                             </div>
@@ -182,12 +219,12 @@ export const Editor: React.FC = () => {
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider">Profile Information</h3>
                   <div className="grid grid-cols-1 gap-4">
-                    <Input label="Display Name" value={card.displayName} onChange={e => updateCard({ displayName: e.target.value })} />
-                    <Input label="Job Title" value={card.title} onChange={e => updateCard({ title: e.target.value })} />
-                    <Input label="Company" value={card.company} onChange={e => updateCard({ company: e.target.value })} />
+                    <Input label="Display Name" value={localCard.displayName} onChange={e => updateLocalCard({ displayName: e.target.value })} />
+                    <Input label="Job Title" value={localCard.title} onChange={e => updateLocalCard({ title: e.target.value })} />
+                    <Input label="Company" value={localCard.company} onChange={e => updateLocalCard({ company: e.target.value })} />
                     <div className="grid grid-cols-2 gap-4">
-                       <Input label="Email" value={card.email} onChange={e => updateCard({ email: e.target.value })} />
-                       <Input label="Location" value={card.location} onChange={e => updateCard({ location: e.target.value })} />
+                       <Input label="Email" value={localCard.email} onChange={e => updateLocalCard({ email: e.target.value })} />
+                       <Input label="Location" value={localCard.location} onChange={e => updateLocalCard({ location: e.target.value })} />
                     </div>
                   </div>
                 </div>
@@ -251,8 +288,8 @@ export const Editor: React.FC = () => {
 
                   <textarea 
                     className="w-full h-28 bg-zinc-50 border border-zinc-200 rounded-lg p-3 text-zinc-900 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 outline-none resize-none text-sm leading-relaxed"
-                    value={card.bio}
-                    onChange={e => updateCard({ bio: e.target.value })}
+                    value={localCard.bio}
+                    onChange={e => updateLocalCard({ bio: e.target.value })}
                     placeholder="Tell your story..."
                   />
                 </div>
@@ -267,22 +304,22 @@ export const Editor: React.FC = () => {
                      <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider">Public Profile URL</h3>
                      <div className="flex items-center justify-between p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
                          <div className="flex items-center gap-3">
-                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${card.customDomainStatus === 'active' ? 'bg-green-100 text-green-600' : 'bg-zinc-200 text-zinc-500'}`}>
+                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${localCard.customDomainStatus === 'active' ? 'bg-green-100 text-green-600' : 'bg-zinc-200 text-zinc-500'}`}>
                                  <Globe size={20} />
                              </div>
                              <div>
                                  <p className="text-sm font-bold text-zinc-900">
-                                     {card.customDomainStatus === 'active' && card.customDomain ? card.customDomain : `tomo.business/u/${card.id}`}
+                                     {localCard.customDomainStatus === 'active' && localCard.customDomain ? localCard.customDomain : `tomo.business/u/${localCard.id}`}
                                  </p>
                                  <p className="text-xs text-zinc-500">
-                                     {card.customDomainStatus === 'active' ? 'Custom domain active' : 'Default URL'}
+                                     {localCard.customDomainStatus === 'active' ? 'Custom domain active' : 'Default URL'}
                                  </p>
                              </div>
                          </div>
                          <Link to="/settings">
                              <Button variant="outline" size="sm" className="text-xs h-8">
                                  <Settings size={12} className="mr-2" />
-                                 {card.customDomainStatus === 'active' ? 'Manage' : 'Connect Domain'}
+                                 {localCard.customDomainStatus === 'active' ? 'Manage' : 'Connect Domain'}
                              </Button>
                          </Link>
                      </div>
@@ -291,13 +328,16 @@ export const Editor: React.FC = () => {
                 <div className="space-y-4">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider">Social & Web</h3>
-                      <Button size="sm" variant="outline" onClick={() => addLink({ id: Date.now().toString(), platform: 'website', url: '' })}>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        const newLink = { id: Date.now().toString(), platform: 'website' as const, url: '' };
+                        updateLocalCard({ links: [...localCard.links, newLink] });
+                      }}>
                         <Plus size={14} className="mr-2" /> Add New
                       </Button>
                     </div>
                     
                     <div className="space-y-3">
-                      {card.links.map((link) => {
+                      {localCard.links.map((link) => {
                         const isUrlValid = isValidUrl(link.url);
                         return (
                           <div key={link.id} className="flex flex-col gap-1">
@@ -316,8 +356,8 @@ export const Editor: React.FC = () => {
                                 className="bg-transparent border-r border-zinc-200 text-xs font-medium text-zinc-700 py-1.5 px-2 focus:outline-none cursor-pointer w-24"
                                 value={link.platform}
                                 onChange={(e) => {
-                                  const newLinks = card.links.map(l => l.id === link.id ? { ...l, platform: e.target.value as any } : l);
-                                  updateCard({ links: newLinks });
+                                  const newLinks = localCard.links.map(l => l.id === link.id ? { ...l, platform: e.target.value as any } : l);
+                                  updateLocalCard({ links: newLinks });
                                 }}
                               >
                                 <option value="website">Website</option>
@@ -337,13 +377,16 @@ export const Editor: React.FC = () => {
                                 placeholder="https://..."
                                 value={link.url}
                                 onChange={(e) => {
-                                  const newLinks = card.links.map(l => l.id === link.id ? { ...l, url: e.target.value } : l);
-                                  updateCard({ links: newLinks });
+                                  const newLinks = localCard.links.map(l => l.id === link.id ? { ...l, url: e.target.value } : l);
+                                  updateLocalCard({ links: newLinks });
                                 }}
                               />
                               
                               <button 
-                                onClick={() => removeLink(link.id)}
+                                onClick={() => {
+                                  const newLinks = localCard.links.filter(l => l.id !== link.id);
+                                  updateLocalCard({ links: newLinks });
+                                }}
                                 className="text-zinc-300 hover:text-red-500 transition-colors p-1"
                               >
                                 <Trash2 size={14} />
@@ -361,7 +404,7 @@ export const Editor: React.FC = () => {
                         );
                       })}
                       
-                      {card.links.length === 0 && (
+                      {localCard.links.length === 0 && (
                         <div className="text-center py-8 bg-zinc-50 border border-dashed border-zinc-200 rounded-lg text-zinc-400">
                             <p className="text-sm">No links added yet.</p>
                         </div>
@@ -381,12 +424,31 @@ export const Editor: React.FC = () => {
         </div>
 
         {/* Live Preview Panel */}
-        <div className="w-full lg:w-[400px] hidden md:flex flex-col items-center justify-center bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner p-8">
-           <div className="mb-6 text-center">
-               <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Live Preview</p>
+        <div className="w-full lg:w-[400px] hidden md:flex flex-col bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner">
+           {/* Save Button Header */}
+           <div className="p-4 border-b border-zinc-200 bg-white rounded-t-xl">
+               <Button 
+                 onClick={handleSave}
+                 disabled={!hasChanges || saving}
+                 className={`w-full ${
+                   hasChanges 
+                     ? 'bg-zinc-900 hover:bg-zinc-800 text-white' 
+                     : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+                 }`}
+               >
+                 <Save size={16} className="mr-2" />
+                 {saving ? 'Saving...' : hasChanges ? 'Save Changes' : 'No Changes'}
+               </Button>
            </div>
            
-           <CardPreview card={card} />
+           {/* Preview */}
+           <div className="flex-1 flex flex-col items-center justify-center p-8">
+             <div className="mb-6 text-center">
+                 <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Live Preview</p>
+             </div>
+             
+             <CardPreview card={localCard} />
+           </div>
         </div>
       </div>
     </Layout>

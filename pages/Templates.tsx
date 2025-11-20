@@ -200,7 +200,7 @@ export const Templates: React.FC = () => {
     try {
       // Apply template to user's card
       await updateCard({
-        theme: template.preview.theme
+        theme: template.preview.theme as any
       });
 
       setAppliedTemplate(template.id);

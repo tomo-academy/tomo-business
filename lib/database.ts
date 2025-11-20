@@ -100,6 +100,8 @@ export const db = {
     if (updates.phone !== undefined) updateData.phone = updates.phone;
     if (updates.avatarUrl !== undefined) updateData.avatar_url = updates.avatarUrl;
     if (updates.coverUrl !== undefined) updateData.cover_url = updates.coverUrl;
+    if (updates.customDomain !== undefined) updateData.custom_domain = updates.customDomain;
+    if (updates.customDomainStatus !== undefined) updateData.custom_domain_status = updates.customDomainStatus;
     if (updates.theme?.primaryColor !== undefined) updateData.theme_primary_color = updates.theme.primaryColor;
     if (updates.theme?.backgroundColor !== undefined) updateData.theme_background_color = updates.theme.backgroundColor;
     if (updates.theme?.fontFamily !== undefined) updateData.theme_font_family = updates.theme.fontFamily;
@@ -429,5 +431,92 @@ export const db = {
       .getPublicUrl(fileName);
 
     return publicUrl;
+  },
+
+  // Custom domain operations
+  async connectCustomDomain(cardId: string, domain: string) {
+    // Validate domain format
+    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
+    if (!domainRegex.test(domain)) {
+      throw new Error('Invalid domain format');
+    }
+
+    // Check if domain is already in use
+    const { data: existing } = await supabase
+      .from('business_cards')
+      .select('id')
+      .eq('custom_domain', domain)
+      .neq('id', cardId)
+      .single();
+
+    if (existing) {
+      throw new Error('Domain already in use');
+    }
+
+    // Set domain with pending status
+    const { data, error } = await supabase
+      .from('business_cards')
+      .update({
+        custom_domain: domain,
+        custom_domain_status: 'pending'
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async verifyCustomDomain(cardId: string) {
+    const card = await this.getCardById(cardId);
+    if (!card?.custom_domain) {
+      throw new Error('No custom domain set');
+    }
+
+    // In a real implementation, you would verify DNS records here
+    // For now, we'll simulate verification
+    try {
+      // Check if domain resolves (simplified check)
+      // In production, check for specific DNS records (CNAME, A record, TXT verification)
+      const response = await fetch(`https://${card.custom_domain}`, {
+        method: 'HEAD',
+        mode: 'no-cors'
+      });
+
+      // Update status to active
+      const { data, error } = await supabase
+        .from('business_cards')
+        .update({ custom_domain_status: 'active' })
+        .eq('id', cardId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { verified: true, data };
+    } catch (error) {
+      // Keep as pending or set to error
+      await supabase
+        .from('business_cards')
+        .update({ custom_domain_status: 'error' })
+        .eq('id', cardId);
+
+      return { verified: false, error: 'Domain verification failed' };
+    }
+  },
+
+  async removeCustomDomain(cardId: string) {
+    const { data, error } = await supabase
+      .from('business_cards')
+      .update({
+        custom_domain: null,
+        custom_domain_status: 'none'
+      })
+      .eq('id', cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };

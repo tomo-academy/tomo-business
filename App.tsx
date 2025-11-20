@@ -14,6 +14,7 @@ import { CardView } from './pages/CardView';
 import { Templates } from './pages/Templates';
 import { EmailSignature } from './pages/EmailSignature';
 import { Analytics } from './pages/Analytics';
+import { ToastContainer } from './components/ui/Toast';
 
 // Private route wrapper using Supabase Auth
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -47,6 +48,7 @@ const App = () => {
       <AppProvider>
         <Router>
           <AppRoutes />
+          <ToastContainer />
         </Router>
       </AppProvider>
     </AuthProvider>
