@@ -274,36 +274,50 @@ export const db = {
 
   // Alias for compatibility
   async getAnalytics(cardId: string, type: string, startDate: string, endDate: string) {
-    const { data: views } = await supabase
-      .from('card_views')
-      .select('*')
-      .eq('card_id', cardId)
-      .gte('viewed_at', startDate)
-      .lte('viewed_at', endDate);
+    try {
+      const { data: views, error: viewsError } = await supabase
+        .from('card_views')
+        .select('*')
+        .eq('card_id', cardId)
+        .gte('viewed_at', startDate)
+        .lt('viewed_at', endDate);
 
-    const { data: clicks } = await supabase
-      .from('card_clicks')
-      .select('*')
-      .eq('card_id', cardId)
-      .gte('clicked_at', startDate)
-      .lte('clicked_at', endDate);
+      if (viewsError) console.error('Views query error:', viewsError);
 
-    const { count: totalViews } = await supabase
-      .from('card_views')
-      .select('*', { count: 'exact', head: true })
-      .eq('card_id', cardId);
+      const { data: clicks, error: clicksError } = await supabase
+        .from('card_clicks')
+        .select('*')
+        .eq('card_id', cardId)
+        .gte('clicked_at', startDate)
+        .lt('clicked_at', endDate);
 
-    const { count: totalClicks } = await supabase
-      .from('card_clicks')
-      .select('*', { count: 'exact', head: true })
-      .eq('card_id', cardId);
+      if (clicksError) console.error('Clicks query error:', clicksError);
 
-    return {
-      views: views || [],
-      clicks: clicks || [],
-      totalViews: totalViews || 0,
-      totalClicks: totalClicks || 0
-    };
+      const { count: totalViews } = await supabase
+        .from('card_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('card_id', cardId);
+
+      const { count: totalClicks } = await supabase
+        .from('card_clicks')
+        .select('*', { count: 'exact', head: true })
+        .eq('card_id', cardId);
+
+      return {
+        views: views || [],
+        clicks: clicks || [],
+        totalViews: totalViews || 0,
+        totalClicks: totalClicks || 0
+      };
+    } catch (error) {
+      console.error('Analytics error:', error);
+      return {
+        views: [],
+        clicks: [],
+        totalViews: 0,
+        totalClicks: 0
+      };
+    }
   },
 
   // YouTube cards operations
