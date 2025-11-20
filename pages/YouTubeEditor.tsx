@@ -13,6 +13,7 @@ export const YouTubeEditor: React.FC = () => {
   const { showToast } = useToast();
   const [ytInput, setYtInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [mobileView, setMobileView] = useState<'preview' | 'settings'>('preview');
   const [showSettings, setShowSettings] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,7 +46,13 @@ export const YouTubeEditor: React.FC = () => {
       showToast('YouTube card generated successfully!', 'success');
     } catch (error) {
       console.error('Failed to generate card', error);
-      showToast('Failed to generate YouTube card', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate YouTube card';
+      showToast(errorMessage, 'error');
+      
+      // Show helpful message for API key issues
+      if (errorMessage.includes('API key')) {
+        showToast('Please configure YouTube API key in environment variables', 'error');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -117,6 +124,32 @@ export const YouTubeEditor: React.FC = () => {
           )}
         </div>
 
+        {/* Mobile View Switcher - Only show when card exists */}
+        {youtubeCard && (
+          <div className="lg:hidden flex gap-2 p-1 bg-zinc-100 rounded-lg">
+            <button
+              onClick={() => setMobileView('preview')}
+              className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-md transition-all ${
+                mobileView === 'preview'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700'
+              }`}
+            >
+              Preview
+            </button>
+            <button
+              onClick={() => setMobileView('settings')}
+              className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-md transition-all ${
+                mobileView === 'settings'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-500 hover:text-zinc-700'
+              }`}
+            >
+              Settings
+            </button>
+          </div>
+        )}
+
         {/* Generator Section */}
         {!youtubeCard ? (
           <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-soft">
@@ -169,7 +202,7 @@ export const YouTubeEditor: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Preview Panel */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${mobileView === 'preview' ? 'block' : 'hidden lg:block'}`}>
               <h3 className="text-lg font-semibold text-zinc-900">Preview</h3>
               <div className={`rounded-2xl overflow-hidden shadow-2xl ${isRedTheme ? 'bg-red-950' : 'bg-zinc-950'}`}>
                 {/* Banner */}
@@ -242,7 +275,7 @@ export const YouTubeEditor: React.FC = () => {
             </div>
 
             {/* Settings Panel */}
-            <div className="space-y-4">
+            <div className={`space-y-4 ${mobileView === 'settings' ? 'block' : 'hidden lg:block'}`}>
               <h3 className="text-lg font-semibold text-zinc-900">Card Settings</h3>
 
               {/* Theme Selection */}

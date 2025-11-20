@@ -27,6 +27,7 @@ const Input = ({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
 export const Editor: React.FC = () => {
   const { card, updateCard, addLink, removeLink } = useAppStore();
   const [activeTab, setActiveTab] = useState<'content' | 'design' | 'links'>('content');
+  const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
   const [generating, setGenerating] = useState(false);
   const [showAiOptions, setShowAiOptions] = useState(false);
   const [aiKeywords, setAiKeywords] = useState('');
@@ -115,8 +116,32 @@ export const Editor: React.FC = () => {
 
   return (
     <Layout>
-      {/* Mobile Sticky Save Button */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
+      {/* Mobile View Switcher */}
+      <div className="lg:hidden flex gap-2 mb-4 p-1 bg-zinc-100 rounded-lg">
+        <button
+          onClick={() => setMobileView('editor')}
+          className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-md transition-all ${
+            mobileView === 'editor'
+              ? 'bg-white text-zinc-900 shadow-sm'
+              : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          Editor
+        </button>
+        <button
+          onClick={() => setMobileView('preview')}
+          className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-md transition-all ${
+            mobileView === 'preview'
+              ? 'bg-white text-zinc-900 shadow-sm'
+              : 'text-zinc-500 hover:text-zinc-700'
+          }`}
+        >
+          Preview
+        </button>
+      </div>
+
+      {/* Mobile Sticky Save Button - Show on both views */}
+      <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
         <Button 
           onClick={handleSave}
           disabled={!hasChanges || saving}
@@ -134,7 +159,9 @@ export const Editor: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-100px)]">
         
         {/* Editor Panel */}
-        <div className="flex-1 bg-white border border-zinc-200 rounded-xl overflow-hidden flex flex-col shadow-soft">
+        <div className={`flex-1 bg-white border border-zinc-200 rounded-xl overflow-hidden flex-col shadow-soft ${
+          mobileView === 'editor' ? 'flex' : 'hidden lg:flex'
+        }`}>
           {/* Tabs */}
           <div className="flex border-b border-zinc-200 bg-zinc-50/50">
              {['content', 'design', 'links'].map(tab => (
@@ -439,8 +466,10 @@ export const Editor: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Preview Panel - Desktop Only, Mobile shows at bottom of editor */}
-        <div className="w-full lg:w-[400px] hidden lg:flex flex-col bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner">
+        {/* Live Preview Panel */}
+        <div className={`w-full lg:w-[400px] flex-col bg-zinc-50 rounded-xl border border-zinc-200 shadow-inner ${
+          mobileView === 'preview' ? 'flex' : 'hidden lg:flex'
+        }`}>
            {/* Save Button Header - Desktop */}
            <div className="p-4 border-b border-zinc-200 bg-white rounded-t-xl">
                <Button 
@@ -465,17 +494,6 @@ export const Editor: React.FC = () => {
              
              <CardPreview card={localCard} />
            </div>
-        </div>
-        
-        {/* Mobile Preview Section - Shows below editor */}
-        <div className="lg:hidden w-full bg-zinc-50 rounded-xl border border-zinc-200 p-6 pb-24">
-          <div className="mb-6 text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Live Preview</p>
-          </div>
-          
-          <div className="flex justify-center">
-            <CardPreview card={localCard} />
-          </div>
         </div>
       </div>
     </Layout>
