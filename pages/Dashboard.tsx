@@ -11,15 +11,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export const Dashboard: React.FC = () => {
-  const { user, card, youtubeCard, generateYouTubeCard, removeYouTubeCard, updateYouTubeCard } = useAppStore();
-  const [ytInput, setYtInput] = useState('');
-  const [isGeneratingYt, setIsGeneratingYt] = useState(false);
-  const [showYtSettings, setShowYtSettings] = useState(false);
+  const { user, card, youtubeCard } = useAppStore();
   const [viewData, setViewData] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState({ totalViews: 0, totalClicks: 0, uniqueVisitors: 0 });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadAnalytics();
@@ -73,28 +69,6 @@ export const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleYtGenerate = async () => {
-    if(!ytInput) return;
-    setIsGeneratingYt(true);
-    try {
-        await generateYouTubeCard(ytInput);
-        setYtInput(''); // Clear input after generation
-    } catch (error) {
-        console.error("Failed to generate card", error);
-    } finally {
-        setIsGeneratingYt(false);
-    }
-  };
-
-  const handleEditYt = () => {
-      if (youtubeCard) {
-          setYtInput(youtubeCard.channelUrl);
-          setTimeout(() => {
-            inputRef.current?.focus();
-          }, 0);
-      }
   };
 
   return (
@@ -189,53 +163,39 @@ export const Dashboard: React.FC = () => {
             </div>
         </div>
 
-        {/* Creator Tools - YouTube Card Section */}
-        <div>
-             <div className="flex items-center gap-2 mb-4">
-                 <Youtube className="text-red-600" size={20} />
-                 <h3 className="text-lg font-bold text-zinc-900">Creator Studio</h3>
-             </div>
-             
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 {/* Generator Form */}
-                 <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-soft flex flex-col justify-center h-full">
-                     <h4 className="text-sm font-semibold text-zinc-900 mb-1">YouTube Business Card</h4>
-                     <p className="text-sm text-zinc-500 mb-4">Generate a compact ID card for your channel instantly.</p>
-                     
-                     <div className="space-y-3">
-                         <div className="relative">
-                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
-                                 <Youtube size={18} />
-                             </div>
-                             <input 
-                                ref={inputRef}
-                                type="text"
-                                placeholder="Paste your channel link (e.g. youtube.com/@tomobusiness)"
-                                value={ytInput}
-                                onChange={(e) => setYtInput(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all"
-                             />
-                         </div>
-                         <Button 
-                            className="w-full bg-red-600 hover:bg-red-700 text-white border-transparent shadow-md shadow-red-200" 
-                            onClick={handleYtGenerate}
-                            disabled={isGeneratingYt || !ytInput}
-                         >
-                             {isGeneratingYt ? (
-                                 <div className="flex items-center gap-2">
-                                     <LoadingSpinner className="w-4 h-4" />
-                                     <span>Fetching Data...</span>
-                                 </div>
-                             ) : (
-                                 <><Wand2 size={16} className="mr-2" /> Generate Card</>
-                             )}
-                         </Button>
-                     </div>
-                 </div>
+        {/* Creator Tools - YouTube Card Quick Link */}
+        {!youtubeCard && (
+          <div className="bg-gradient-to-br from-red-50 to-white border border-red-100 rounded-2xl p-6 shadow-soft">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Youtube className="text-red-600" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-zinc-900">YouTube Creator Card</h3>
+                  <p className="text-sm text-zinc-500">Generate a professional card for your YouTube channel</p>
+                </div>
+              </div>
+              <Link to="/youtube-editor">
+                <Button className="bg-red-600 hover:bg-red-700 text-white">
+                  <Wand2 size={16} className="mr-2" /> Create Card
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
 
-                 {/* Card Preview */}
-                 <div className="flex flex-col items-center justify-center min-h-[240px]">
-                     {youtubeCard ? (
+        {/* YouTube Card Preview if exists */}
+        {youtubeCard && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Youtube className="text-red-600" size={20} />
+              <h3 className="text-lg font-bold text-zinc-900">Your YouTube Card</h3>
+            </div>
+             
+             <div className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-soft">
+                 <div className="flex flex-col items-center justify-center">
+                     {youtubeCard && (
                          <div className="w-full max-w-md flex flex-col items-center gap-6">
                              {/* The Card */}
                              <div className={`w-full aspect-[1.58/1] rounded-xl relative overflow-hidden shadow-2xl border border-zinc-800 transition-transform duration-300 hover:scale-[1.02] ${youtubeCard.settings.theme === 'dark' ? 'bg-zinc-900' : 'bg-red-700'}`}>
@@ -309,115 +269,27 @@ export const Dashboard: React.FC = () => {
 
                              {/* Actions Below Preview */}
                              <div className="flex flex-wrap justify-center gap-3 w-full">
+                                 <Link to="/youtube-editor">
+                                   <button className="action-btn">
+                                       <Edit size={14} /> Manage Card
+                                   </button>
+                                 </Link>
                                  <button onClick={() => window.open(youtubeCard.channelUrl, '_blank')} className="action-btn">
-                                     <Eye size={14} /> View
+                                     <Eye size={14} /> View Channel
                                  </button>
-                                 <button onClick={handleEditYt} className="action-btn">
-                                     <Edit size={14} /> Edit
-                                 </button>
-                                 <button onClick={() => setShowYtSettings(true)} className="action-btn">
-                                     <Settings size={14} /> Customize
+                                 <button onClick={() => window.open('/#/youtube-profile', '_blank')} className="action-btn">
+                                     <Youtube size={14} /> View Profile
                                  </button>
                                  <button onClick={() => navigate('/nfc?type=youtube')} className={`action-btn ${youtubeCard.nfcActive ? 'text-green-600 border-green-200 bg-green-50' : ''}`}>
                                      <Wifi size={14} /> {youtubeCard.nfcActive ? 'Active' : 'Link NFC'}
                                  </button>
-                                 <button onClick={removeYouTubeCard} className="action-btn text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100">
-                                     <Trash2 size={14} /> Delete
-                                 </button>
                              </div>
-                         </div>
-                     ) : (
-                         <div className="w-full max-w-md aspect-[1.58/1] bg-zinc-50 border-2 border-dashed border-zinc-200 rounded-xl flex flex-col items-center justify-center text-zinc-400 gap-2">
-                             <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mb-1">
-                                 <Youtube size={20} className="opacity-50" />
-                             </div>
-                             <p className="text-sm font-medium">No Creator Card Generated</p>
                          </div>
                      )}
                  </div>
              </div>
-        </div>
-
-        {/* YouTube Card Settings Modal */}
-        <AnimatePresence>
-            {showYtSettings && youtubeCard && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <motion.div 
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-                        onClick={() => setShowYtSettings(false)}
-                    />
-                    <motion.div 
-                        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10"
-                    >
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-zinc-900">Card Configuration</h3>
-                            <button onClick={() => setShowYtSettings(false)} className="text-zinc-400 hover:text-zinc-900"><X size={20}/></button>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div>
-                                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 block">Card Theme</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button 
-                                        onClick={() => updateYouTubeCard({ settings: { ...youtubeCard.settings, theme: 'dark' } })}
-                                        className={`h-16 rounded-lg bg-zinc-900 flex items-center justify-center text-white text-xs font-medium ring-offset-2 transition-all ${youtubeCard.settings.theme === 'dark' ? 'ring-2 ring-zinc-900' : ''}`}
-                                    >
-                                        Midnight Black
-                                    </button>
-                                    <button 
-                                        onClick={() => updateYouTubeCard({ settings: { ...youtubeCard.settings, theme: 'red' } })}
-                                        className={`h-16 rounded-lg bg-red-600 flex items-center justify-center text-white text-xs font-medium ring-offset-2 transition-all ${youtubeCard.settings.theme === 'red' ? 'ring-2 ring-red-600' : ''}`}
-                                    >
-                                        YouTube Red
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 block">Display Options</label>
-                                <div className="space-y-3">
-                                    <label className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 bg-zinc-50 cursor-pointer hover:bg-zinc-100 transition-colors">
-                                        <span className="text-sm font-medium text-zinc-700">Show Subscriber Count</span>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={youtubeCard.settings.showSubscribers}
-                                            onChange={(e) => updateYouTubeCard({ settings: { ...youtubeCard.settings, showSubscribers: e.target.checked } })}
-                                            className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-                                        />
-                                    </label>
-                                    <label className="flex items-center justify-between p-3 rounded-lg border border-zinc-200 bg-zinc-50 cursor-pointer hover:bg-zinc-100 transition-colors">
-                                        <span className="text-sm font-medium text-zinc-700">Show Video Count</span>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={youtubeCard.settings.showVideos}
-                                            onChange={(e) => updateYouTubeCard({ settings: { ...youtubeCard.settings, showVideos: e.target.checked } })}
-                                            className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div className="pt-4 border-t border-zinc-100 flex gap-3">
-                                <Button variant="outline" className="flex-1" onClick={() => setShowYtSettings(false)}>Cancel</Button>
-                                <Button className="flex-1 bg-zinc-900" onClick={() => {
-                                  setShowYtSettings(false);
-                                  // Show toast notification
-                                  const toast = document.createElement('div');
-                                  toast.className = 'fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
-                                  toast.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="text-sm font-medium">YouTube card settings saved!</span>';
-                                  document.body.appendChild(toast);
-                                  setTimeout(() => toast.remove(), 3000);
-                                }}>
-                                  <CheckCircle2 size={16} className="mr-1" /> Save Changes
-                                </Button>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
+          </div>
+        )}
 
         {/* Stats Header */}
         <div className="flex justify-between items-end pt-4">

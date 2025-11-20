@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 import { PublicProfile } from './pages/PublicProfile';
 import { YouTubeProfile } from './pages/YouTubeProfile';
+import { YouTubeEditor } from './pages/YouTubeEditor';
 import { NFC } from './pages/NFC';
 import { Settings } from './pages/Settings';
 import { CardView } from './pages/CardView';
@@ -32,6 +33,7 @@ const AppRoutes = () => {
       <Route path="/c/:cardId" element={<CardView />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/editor" element={<PrivateRoute><Editor /></PrivateRoute>} />
+      <Route path="/youtube-editor" element={<PrivateRoute><YouTubeEditor /></PrivateRoute>} />
       <Route path="/nfc" element={<PrivateRoute><NFC /></PrivateRoute>} />
       <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="/templates" element={<PrivateRoute><Templates /></PrivateRoute>} />
