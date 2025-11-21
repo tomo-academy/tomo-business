@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/database';
 import { Button } from '../components/ui/Button';
 import { Logo } from '../components/ui/Logo';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { LogIn, UserPlus, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export const Auth: React.FC = () => {
@@ -158,21 +159,7 @@ export const Auth: React.FC = () => {
 
   // Show loading screen during OAuth processing
   if (isProcessingOAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-bounce mb-6">
-            <Logo className="scale-150" />
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-          </div>
-          <p className="mt-6 text-zinc-600 font-medium">{error || 'Completing sign in...'}</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen text={error || 'Completing sign in...'} />;
   }
 
   return (

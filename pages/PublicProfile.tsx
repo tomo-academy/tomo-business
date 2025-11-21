@@ -52,7 +52,7 @@ END:VCARD`;
   if (loading) {
       return (
           <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-              <LoadingSpinner />
+              <LoadingSpinner text="Loading profile..." />
           </div>
       )
   }

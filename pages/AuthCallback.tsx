@@ -51,12 +51,5 @@ export const AuthCallback: React.FC = () => {
     handleCallback();
   }, [navigate]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center">
-      <div className="text-center">
-        <LoadingSpinner size="large" />
-        <p className="mt-4 text-zinc-600">{status}</p>
-      </div>
-    </div>
-  );
+  return <LoadingSpinner fullScreen text={status} />;
 };

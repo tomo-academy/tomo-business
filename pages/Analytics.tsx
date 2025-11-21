@@ -164,7 +164,7 @@ export const Analytics: React.FC = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center h-96">
-          <LoadingSpinner />
+          <LoadingSpinner text="Loading analytics..." />
         </div>
       </Layout>
     );

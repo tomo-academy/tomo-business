@@ -156,7 +156,7 @@ export const CardView: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <LoadingSpinner />
+        <LoadingSpinner text="Loading card..." />
       </div>
     );
   }
