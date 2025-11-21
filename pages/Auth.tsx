@@ -14,13 +14,40 @@ export const Auth: React.FC = () => {
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [isProcessingOAuth, setIsProcessingOAuth] = React.useState(false);
+
+  // Handle OAuth callback
+  React.useEffect(() => {
+    const handleOAuthCallback = async () => {
+      // Check if we have OAuth tokens in the URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      
+      if (accessToken) {
+        setIsProcessingOAuth(true);
+        setError('Processing sign in...');
+        
+        // Wait for Supabase to process the session
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Get the session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          navigate('/dashboard');
+        }
+      }
+    };
+    
+    handleOAuthCallback();
+  }, [navigate]);
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) {
+    if (user && !isProcessingOAuth) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isProcessingOAuth]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +76,7 @@ export const Auth: React.FC = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/#/auth`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -74,7 +101,7 @@ export const Auth: React.FC = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/#/auth`
         }
       });
       
