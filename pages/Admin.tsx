@@ -41,6 +41,30 @@ export const Admin: React.FC = () => {
     try {
       setLoading(true);
       
+      // Call the admin API endpoint
+      const response = await fetch(`/api/admin-users?adminEmail=${encodeURIComponent(user?.email || '')}`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch admin data:', response.status);
+        // Fallback to direct query
+        await loadAdminDataFallback();
+        return;
+      }
+      
+      const data = await response.json();
+      processUserData(data.users || []);
+      
+    } catch (error) {
+      console.error('Error loading admin data:', error);
+      // Try fallback method
+      await loadAdminDataFallback();
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const loadAdminDataFallback = async () => {
+    try {
       // Get all users from users table
       const { data: usersData, error: usersError } = await db.supabase
         .from('users')
@@ -49,7 +73,6 @@ export const Admin: React.FC = () => {
       
       if (usersError) {
         console.error('Error fetching users:', usersError);
-        setLoading(false);
         return;
       }
       
@@ -57,20 +80,17 @@ export const Admin: React.FC = () => {
       const usersWithData = await Promise.all(
         (usersData || []).map(async (user: any) => {
           // Get business cards count
-          const { data: cards, error: cardsError } = await db.supabase
+          const { data: cards } = await db.supabase
             .from('business_cards')
             .select('id')
             .eq('user_id', user.id)
             .eq('is_active', true);
           
           // Get YouTube cards count
-          const { data: ytCards, error: ytError } = await db.supabase
+          const { data: ytCards } = await db.supabase
             .from('youtube_cards')
             .select('id')
             .eq('user_id', user.id);
-          
-          // Get last sign in from auth metadata if available
-          // Note: last_sign_in_at might not be in users table, using created_at as fallback
           
           return {
             id: user.id,
@@ -85,11 +105,8 @@ export const Admin: React.FC = () => {
       );
       
       processUserData(usersWithData);
-      
     } catch (error) {
-      console.error('Error loading admin data:', error);
-    } finally {
-      setLoading(false);
+      console.error('Fallback error:', error);
     }
   };
   
