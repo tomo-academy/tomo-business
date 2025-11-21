@@ -274,7 +274,6 @@ export const Admin: React.FC = () => {
                         </div>
                         <div>
                           <div className="font-semibold text-zinc-900">{user.name || 'User'}</div>
-                          <div className="text-xs text-zinc-500">{user.id.substring(0, 8)}...</div>
                         </div>
                       </div>
                     </td>
