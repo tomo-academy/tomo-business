@@ -36,6 +36,20 @@
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
       }
+      
+      /* Custom cursor styles */
+      * {
+        cursor: default;
+      }
+      a, button, [role="button"], input[type="submit"], input[type="button"] {
+        cursor: pointer;
+      }
+      input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+        cursor: text;
+      }
+      input[type="checkbox"], input[type="radio"] {
+        cursor: pointer;
+      }
     </style>
   <script>
     // Handle OAuth callback redirect before React loads

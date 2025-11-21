@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { db } from '../lib/database';
-import { Users, Calendar, Clock, Activity, TrendingUp, Mail, CreditCard } from 'lucide-react';
+import { useAuth } from '../lib/auth';
+import { Users, Calendar, Clock, Activity, TrendingUp, Mail, CreditCard, ShieldAlert } from 'lucide-react';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 interface UserData {
@@ -24,9 +25,17 @@ export const Admin: React.FC = () => {
     totalCards: 0
   });
 
+  // Check if user is admin
+  const { user } = useAuth();
+  const isAdmin = user?.email === 'tomoacademyofficial@gmail.com';
+
   useEffect(() => {
-    loadAdminData();
-  }, []);
+    if (isAdmin) {
+      loadAdminData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAdmin]);
 
   const loadAdminData = async () => {
     try {
@@ -90,11 +99,28 @@ export const Admin: React.FC = () => {
     return formatDate(dateString);
   };
 
+  // Show unauthorized message for non-admin users
+  if (!isAdmin) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center max-w-md">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldAlert className="text-red-600" size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-zinc-900 mb-2">Access Denied</h2>
+            <p className="text-zinc-500">You don't have permission to access this page. Admin access is restricted.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-96">
-          <LoadingSpinner size="large" />
+          <LoadingSpinner />
         </div>
       </Layout>
     );

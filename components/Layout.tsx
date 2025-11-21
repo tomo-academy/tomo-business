@@ -14,6 +14,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Check if user is admin
+  const isAdmin = user?.email === 'tomoacademyofficial@gmail.com';
+
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Layers, label: 'My Cards', path: '/my-cards' },
@@ -24,7 +27,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { icon: Sparkles, label: 'Templates', path: '/templates' },
     { icon: Mail, label: 'Email Signature', path: '/email-signature' },
     { icon: CreditCard, label: 'NFC Activation', path: '/nfc' },
-    { icon: Shield, label: 'Admin', path: '/admin' },
+    ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin' }] : []),
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
