@@ -19,22 +19,49 @@ export const Auth: React.FC = () => {
   // Handle OAuth callback
   React.useEffect(() => {
     const handleOAuthCallback = async () => {
-      // Check if we have OAuth tokens in the URL
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
+      // Get full hash including the route part
+      const fullHash = window.location.hash;
+      
+      // Check for access_token in the hash (after #/auth)
+      const hashParts = fullHash.split('#');
+      let accessToken = null;
+      
+      for (const part of hashParts) {
+        if (part.includes('access_token=')) {
+          const params = new URLSearchParams(part);
+          accessToken = params.get('access_token');
+          break;
+        }
+      }
       
       if (accessToken) {
         setIsProcessingOAuth(true);
-        setError('Processing sign in...');
+        setLoading(true);
+        setError('Completing sign in...');
         
-        // Wait for Supabase to process the session
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Give Supabase time to process the OAuth callback
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Get the session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setError('Authentication failed. Please try again.');
+          setIsProcessingOAuth(false);
+          setLoading(false);
+          return;
+        }
         
         if (session) {
-          navigate('/dashboard');
+          console.log('OAuth session established, redirecting to dashboard');
+          // Clear the hash from URL
+          window.history.replaceState(null, '', '/#/auth');
+          navigate('/dashboard', { replace: true });
+        } else {
+          setError('Failed to establish session. Please try again.');
+          setIsProcessingOAuth(false);
+          setLoading(false);
         }
       }
     };
@@ -42,7 +69,7 @@ export const Auth: React.FC = () => {
     handleOAuthCallback();
   }, [navigate]);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (but not during OAuth processing)
   React.useEffect(() => {
     if (user && !isProcessingOAuth) {
       navigate('/dashboard');
