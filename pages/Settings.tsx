@@ -205,13 +205,13 @@ export const Settings: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-zinc-700 mb-1.5">Email Address</label>
                             <div className="px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-600 text-sm">
-                                {user?.email}
+                                {storeUser?.email}
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-zinc-700 mb-1.5">Current Plan</label>
                              <div className="px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-zinc-900 text-sm font-bold uppercase tracking-wide">
-                                {user?.plan} Tier
+                                {storeUser?.plan || 'Free'} Tier
                             </div>
                         </div>
                     </div>
