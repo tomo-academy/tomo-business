@@ -549,5 +549,50 @@ export const db = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Admin operations
+  async getAllUsersAdmin() {
+    try {
+      // Get all users
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        return [];
+      }
+
+      // Get card counts for each user
+      const usersWithCounts = await Promise.all(
+        (users || []).map(async (user) => {
+          // Get business cards count
+          const { data: cards } = await supabase
+            .from('business_cards')
+            .select('id', { count: 'exact' })
+            .eq('user_id', user.id)
+            .eq('is_active', true);
+
+          // Get YouTube cards count
+          const { data: ytCards } = await supabase
+            .from('youtube_cards')
+            .select('id', { count: 'exact' })
+            .eq('user_id', user.id);
+
+          return {
+            ...user,
+            card_count: cards?.length || 0,
+            youtube_card_count: ytCards?.length || 0
+          };
+        })
+      );
+
+      return usersWithCounts;
+    } catch (error) {
+      console.error('Error in getAllUsersAdmin:', error);
+      return [];
+    }
   }
 };

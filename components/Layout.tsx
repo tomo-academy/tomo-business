@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Edit3, User as UserIcon, LogOut, Settings, CreditCard, ExternalLink, Menu, X, Sparkles, Mail, BarChart3, Youtube, Layers } from 'lucide-react';
+import { LayoutDashboard, Edit3, User as UserIcon, LogOut, Settings, CreditCard, ExternalLink, Menu, X, Sparkles, Mail, BarChart3, Youtube, Layers, Shield } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -24,6 +24,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { icon: Sparkles, label: 'Templates', path: '/templates' },
     { icon: Mail, label: 'Email Signature', path: '/email-signature' },
     { icon: CreditCard, label: 'NFC Activation', path: '/nfc' },
+    { icon: Shield, label: 'Admin', path: '/admin' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 

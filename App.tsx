@@ -18,6 +18,7 @@ import { CardView } from './pages/CardView';
 import { Templates } from './pages/Templates';
 import { EmailSignature } from './pages/EmailSignature';
 import { Analytics } from './pages/Analytics';
+import { Admin } from './pages/Admin';
 import { ToastContainer } from './components/ui/Toast';
 
 // Private route wrapper using Supabase Auth
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       <Route path="/templates" element={<PrivateRoute><Templates /></PrivateRoute>} />
       <Route path="/email-signature" element={<PrivateRoute><EmailSignature /></PrivateRoute>} />
       <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+      <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
