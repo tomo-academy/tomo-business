@@ -223,8 +223,12 @@ export const YouTubeProfile: React.FC = () => {
             </div>
 
             {/* Footer branding */}
-            <div className="text-center py-6 border-t border-white/5 mt-auto">
+            <div className="text-center py-6 border-t border-white/5 mt-auto space-y-2">
                 <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold">Powered by TOMO BUSINESS</p>
+                <div className="flex items-center justify-center gap-2 text-[9px] text-white/20">
+                    <span>Designed by ❤️ AJ STUDIOZ</span>
+                    <img src="/AJ.svg" alt="AJ STUDIOZ" className="h-4 w-4 opacity-20" />
+                </div>
             </div>
         </div>
 

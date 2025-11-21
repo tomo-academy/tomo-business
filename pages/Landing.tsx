@@ -141,8 +141,14 @@ export const Landing: React.FC = () => {
       <footer className="border-t border-zinc-200 py-12 bg-white">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
             <Logo />
-            <div className="text-sm text-zinc-500">
-                © 2024 TOMO BUSINESS. All rights reserved.
+            <div className="flex flex-col items-center md:items-end gap-2">
+                <div className="text-sm text-zinc-500">
+                    © 2025 TOMO BUSINESS. All rights reserved.
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                    <span>Designed by ❤️ AJ STUDIOZ</span>
+                    <img src="/AJ.svg" alt="AJ STUDIOZ" className="h-6 w-6" />
+                </div>
             </div>
         </div>
       </footer>

@@ -404,8 +404,12 @@ export const CardView: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-gray-500 text-sm">
-          <p>Powered by <a href="/" className="font-semibold hover:underline">TOMO BUSINESS</a></p>
+        <div className="text-center mt-8 space-y-2">
+          <p className="text-gray-500 text-sm">Powered by <a href="/" className="font-semibold hover:underline">TOMO BUSINESS</a></p>
+          <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+            <span>Designed by ❤️ AJ STUDIOZ</span>
+            <img src="/AJ.svg" alt="AJ STUDIOZ" className="h-5 w-5" />
+          </div>
         </div>
       </div>
     </div>

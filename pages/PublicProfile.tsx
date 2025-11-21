@@ -182,8 +182,12 @@ END:VCARD`;
                  ))}
               </div>
 
-              <div className="mt-12 text-center pb-8">
+              <div className="mt-12 text-center pb-8 space-y-2">
                   <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold">Made with TOMO BUSINESS</p>
+                  <div className="flex items-center justify-center gap-2 text-[9px] text-zinc-500">
+                      <span>Designed by ❤️ AJ STUDIOZ</span>
+                      <img src="/AJ.svg" alt="AJ STUDIOZ" className="h-4 w-4" />
+                  </div>
               </div>
           </div>
 
