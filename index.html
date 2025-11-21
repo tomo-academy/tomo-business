@@ -37,6 +37,18 @@
           scrollbar-width: none;  /* Firefox */
       }
     </style>
+  <script>
+    // Handle OAuth callback redirect before React loads
+    (function() {
+      var path = window.location.pathname;
+      var hash = window.location.hash;
+      
+      // If we're at /auth/callback with hash params, redirect to /#/auth with those params
+      if (path === '/auth/callback' && hash) {
+        window.location.href = window.location.origin + '/#/auth' + hash;
+      }
+    })();
+  </script>
   <script type="importmap">
 {
   "imports": {
