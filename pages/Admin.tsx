@@ -41,45 +41,43 @@ export const Admin: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get all users from Supabase Auth (bypasses RLS)
-      const { data: authData } = await db.supabase.auth.admin.listUsers();
+      // Get all users from users table
+      const { data: usersData, error: usersError } = await db.supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (!authData?.users) {
-        // Fallback to regular query if admin API not available
-        const allUsers = await db.getAllUsersAdmin();
-        processUserData(allUsers);
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        setLoading(false);
         return;
       }
       
-      // Get card counts for each user from auth data
+      // Get card counts for each user
       const usersWithData = await Promise.all(
-        authData.users.map(async (authUser: any) => {
-          // Get user data from users table
-          const { data: userData } = await db.supabase
-            .from('users')
-            .select('*')
-            .eq('id', authUser.id)
-            .single();
-          
+        (usersData || []).map(async (user: any) => {
           // Get business cards count
-          const { data: cards } = await db.supabase
+          const { data: cards, error: cardsError } = await db.supabase
             .from('business_cards')
             .select('id')
-            .eq('user_id', authUser.id)
+            .eq('user_id', user.id)
             .eq('is_active', true);
           
           // Get YouTube cards count
-          const { data: ytCards } = await db.supabase
+          const { data: ytCards, error: ytError } = await db.supabase
             .from('youtube_cards')
             .select('id')
-            .eq('user_id', authUser.id);
+            .eq('user_id', user.id);
+          
+          // Get last sign in from auth metadata if available
+          // Note: last_sign_in_at might not be in users table, using created_at as fallback
           
           return {
-            id: authUser.id,
-            email: authUser.email || '',
-            name: userData?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-            created_at: authUser.created_at,
-            last_sign_in_at: authUser.last_sign_in_at,
+            id: user.id,
+            email: user.email || '',
+            name: user.name || user.email?.split('@')[0] || 'User',
+            created_at: user.created_at,
+            last_sign_in_at: user.last_sign_in_at || user.updated_at || user.created_at,
             card_count: cards?.length || 0,
             youtube_card_count: ytCards?.length || 0
           };
@@ -90,13 +88,6 @@ export const Admin: React.FC = () => {
       
     } catch (error) {
       console.error('Error loading admin data:', error);
-      // Try fallback method
-      try {
-        const allUsers = await db.getAllUsersAdmin();
-        processUserData(allUsers);
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
-      }
     } finally {
       setLoading(false);
     }
