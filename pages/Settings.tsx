@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/Button';
 import { useAppStore } from '../store';
+import { useAuth } from '../lib/auth';
 import { useToast } from '../components/ui/Toast';
 import { db } from '../lib/database';
 import { Shield, CreditCard, Bell, Globe, CheckCircle2, AlertCircle, RefreshCw, Server, Copy } from 'lucide-react';
 
 export const Settings: React.FC = () => {
-  const { user, card, logout, updateCard } = useAppStore();
+  const { user: storeUser, card, updateCard } = useAppStore();
+  const { signOut } = useAuth();
   const { showToast } = useToast();
   const [domainInput, setDomainInput] = useState(card.customDomain || '');
   const [verifying, setVerifying] = useState(false);
@@ -253,10 +255,10 @@ export const Settings: React.FC = () => {
             <section className="border border-red-200 bg-red-50/50 rounded-xl p-6">
                  <div className="flex justify-between items-center">
                      <div>
-                         <h3 className="text-base font-bold text-red-600">Delete Account</h3>
-                         <p className="text-sm text-red-400/80 mt-1">Permanently delete your account and all associated data.</p>
+                         <h3 className="text-base font-bold text-red-600">Logout</h3>
+                         <p className="text-sm text-red-400/80 mt-1">Sign out of your account.</p>
                      </div>
-                     <Button variant="danger" size="sm" onClick={logout}>Delete Account</Button>
+                     <Button variant="danger" size="sm" onClick={signOut}>Logout</Button>
                  </div>
             </section>
         </div>

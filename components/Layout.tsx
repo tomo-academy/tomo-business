@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Edit3, User as UserIcon, LogOut, Settings, CreditCard, ExternalLink, Menu, X, Sparkles, Mail, BarChart3, Youtube, Layers } from 'lucide-react';
 import { useAppStore } from '../store';
+import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Logo } from './ui/Logo';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout, user } = useAppStore();
+  const { user: storeUser } = useAppStore();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,9 +27,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -75,11 +81,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         <div className="p-4 border-t border-zinc-100 bg-zinc-50/50">
           <div className="flex items-center gap-3 px-2 py-1">
             <div className="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-              {user?.name.charAt(0)}
+              {storeUser?.name ? storeUser.name.charAt(0) : user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-zinc-900 truncate">{user?.name}</p>
-              <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+              <p className="text-sm font-semibold text-zinc-900 truncate">{storeUser?.name || user?.email?.split('@')[0]}</p>
+              <p className="text-xs text-zinc-500 truncate">{storeUser?.email || user?.email}</p>
             </div>
             <button onClick={handleLogout} className="text-zinc-400 hover:text-red-600 transition-colors">
               <LogOut size={16} />
@@ -173,11 +179,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <div className="p-4 border-t border-zinc-100 bg-zinc-50/50">
                   <div className="flex items-center gap-3 px-2 py-1">
                     <div className="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                      {user?.name.charAt(0)}
+                      {storeUser?.name ? storeUser.name.charAt(0) : user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900 truncate">{user?.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                      <p className="text-sm font-semibold text-zinc-900 truncate">{storeUser?.name || user?.email?.split('@')[0]}</p>
+                      <p className="text-xs text-zinc-500 truncate">{storeUser?.email || user?.email}</p>
                     </div>
                     <button onClick={handleLogout} className="text-zinc-400 hover:text-red-600 transition-colors p-2">
                       <LogOut size={16} />
