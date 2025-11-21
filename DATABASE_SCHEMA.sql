@@ -43,8 +43,8 @@ CREATE POLICY "Allow public to insert card views" ON card_views
 -- Allow users to read their own card views
 CREATE POLICY "Users can read their own card views" ON card_views
     FOR SELECT USING (
-        card_id IN (
-            SELECT id::text FROM business_cards WHERE user_id = auth.uid()
+        card_id::uuid IN (
+            SELECT id FROM business_cards WHERE user_id = auth.uid()
         )
     );
 
@@ -58,8 +58,8 @@ CREATE POLICY "Allow public to insert card clicks" ON card_clicks
 -- Allow users to read their own card clicks
 CREATE POLICY "Users can read their own card clicks" ON card_clicks
     FOR SELECT USING (
-        card_id IN (
-            SELECT id::text FROM business_cards WHERE user_id = auth.uid()
+        card_id::uuid IN (
+            SELECT id FROM business_cards WHERE user_id = auth.uid()
         )
     );
 
