@@ -4,6 +4,7 @@ import { AuthProvider, useUser } from './lib/auth';
 import { AppProvider } from './store';
 import { Landing } from './pages/Landing';
 import { Auth } from './pages/Auth';
+import { AuthCallback } from './pages/AuthCallback';
 import { Dashboard } from './pages/Dashboard';
 import { Editor } from './pages/Editor';
 import { MyCards } from './pages/MyCards';
@@ -30,6 +31,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/preview" element={<PublicProfile />} />
       <Route path="/youtube-profile" element={<YouTubeProfile />} />
       <Route path="/c/:cardId" element={<CardView />} />
