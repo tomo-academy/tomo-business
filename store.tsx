@@ -98,6 +98,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // Load user's cards
       const userCards = await db.getUserCards(supabaseUser.id);
+      
+      // Check if this is truly a new user (just created in this session)
+      const isNewUser = !userData.created_at || 
+        (new Date().getTime() - new Date(userData.created_at).getTime() < 5000);
+      
       if (userCards.length > 0) {
         const firstCard = userCards[0];
         setCard({
@@ -200,8 +205,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setYoutubeCardId(firstYtCard.id);
           setYoutubeCard(firstYtCard);
         }
-      } else {
-        // Create default card for new user
+      } else if (isNewUser) {
+        // Only create default card for truly new users
         const newCard = await db.createCard(supabaseUser.id, {
           ...defaultCard,
           displayName: userData.name || 'Your Name',
@@ -211,6 +216,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCard({
           ...defaultCard,
           id: newCard.id,
+          displayName: userData.name || 'Your Name',
+          email: userData.email
+        });
+        setCards([{
+          ...defaultCard,
+          id: newCard.id,
+          displayName: userData.name || 'Your Name',
+          email: userData.email
+        }]);
+      } else {
+        // Existing user with no cards - use default card in state only
+        setCard({
+          ...defaultCard,
           displayName: userData.name || 'Your Name',
           email: userData.email
         });

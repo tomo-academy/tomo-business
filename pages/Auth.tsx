@@ -156,6 +156,25 @@ export const Auth: React.FC = () => {
     }
   };
 
+  // Show loading screen during OAuth processing
+  if (isProcessingOAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-bounce mb-6">
+            <Logo className="scale-150" />
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-zinc-900 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+          <p className="mt-6 text-zinc-600 font-medium">{error || 'Completing sign in...'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
