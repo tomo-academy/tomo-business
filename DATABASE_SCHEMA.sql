@@ -3,7 +3,7 @@
 -- Card Views Table
 CREATE TABLE IF NOT EXISTS card_views (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    card_id TEXT NOT NULL,
+    card_id UUID NOT NULL,
     viewed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     viewer_ip TEXT,
     viewer_country TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS card_views (
 -- Card Clicks Table
 CREATE TABLE IF NOT EXISTS card_clicks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    card_id TEXT NOT NULL,
+    card_id UUID NOT NULL,
     link_id TEXT,
     link_url TEXT,
     clicked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -44,7 +44,7 @@ CREATE POLICY "Allow public to insert card views" ON card_views
 CREATE POLICY "Users can read their own card views" ON card_views
     FOR SELECT USING (
         card_id IN (
-            SELECT id::text FROM business_cards WHERE user_id = auth.uid()::uuid
+            SELECT id FROM business_cards WHERE user_id = auth.uid()
         )
     );
 
@@ -59,7 +59,7 @@ CREATE POLICY "Allow public to insert card clicks" ON card_clicks
 CREATE POLICY "Users can read their own card clicks" ON card_clicks
     FOR SELECT USING (
         card_id IN (
-            SELECT id::text FROM business_cards WHERE user_id = auth.uid()::uuid
+            SELECT id FROM business_cards WHERE user_id = auth.uid()
         )
     );
 
