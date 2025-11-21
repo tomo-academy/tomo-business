@@ -322,14 +322,31 @@ export const db = {
 
   // YouTube cards operations
   async getUserYouTubeCards(userId: string) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('youtube_cards')
       .select('*')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
+    
+    // If userId is provided, filter by it. Otherwise get all (for public access)
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query;
     
     if (error) throw error;
     return data || [];
+  },
+
+  async getYouTubeCardById(cardId: string) {
+    const { data, error } = await supabase
+      .from('youtube_cards')
+      .select('*')
+      .eq('id', cardId)
+      .single();
+    
+    if (error) throw error;
+    return data;
   },
 
   async createYouTubeCard(userId: string, cardData: any) {

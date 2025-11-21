@@ -251,7 +251,7 @@ export const YouTubeEditor: React.FC = () => {
                     <p className="text-[8px] text-zinc-900 font-bold text-center mt-1">CHANNEL</p>
                   </div>
                   <div className="bg-white p-2 rounded-lg border-2 border-red-200">
-                    <QRCodeSVG value={`${window.location.origin}/#/youtube-profile`} size={60} />
+                    <QRCodeSVG value={`${window.location.origin}/#/youtube-profile?id=${youtubeCardId}`} size={60} />
                     <p className="text-[8px] text-red-600 font-bold text-center mt-1">PROFILE</p>
                   </div>
                 </div>
@@ -265,7 +265,7 @@ export const YouTubeEditor: React.FC = () => {
                 <Button variant="outline" onClick={() => window.open(youtubeCard.channelUrl, '_blank')}>
                   <Play size={14} className="mr-2" /> View Channel
                 </Button>
-                <Button variant="outline" onClick={() => window.open('/#/youtube-profile', '_blank')}>
+                <Button variant="outline" onClick={() => window.open(`/#/youtube-profile?id=${youtubeCardId}`, '_blank')}>
                   <Youtube size={14} className="mr-2" /> View Profile
                 </Button>
                 <Button variant="outline" onClick={handleDelete} className="text-red-500 hover:bg-red-50 border-red-200">

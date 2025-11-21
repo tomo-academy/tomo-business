@@ -174,7 +174,7 @@ export const MyYouTubeCards: React.FC = () => {
                     {/* QR Code */}
                     <div className="px-4 pb-4">
                       <div className="bg-white p-2 rounded-lg inline-block">
-                        <QRCodeSVG value={card.channelUrl} size={50} />
+                        <QRCodeSVG value={`${window.location.origin}/#/youtube-profile?id=${card.id}`} size={50} />
                       </div>
                     </div>
                   </div>

@@ -1,20 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '../store';
+import { useSearchParams } from 'react-router-dom';
 import { Share2, Users, Play, Eye, Youtube, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { cn } from '../lib/utils';
+import { db } from '../lib/database';
 
 export const YouTubeProfile: React.FC = () => {
-  const { youtubeCard } = useAppStore();
+  const { youtubeCard: storeYoutubeCard } = useAppStore();
+  const [searchParams] = useSearchParams();
+  const [youtubeCard, setYoutubeCard] = useState(storeYoutubeCard);
   const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    const loadCard = async () => {
+      const cardId = searchParams.get('id');
+      
+      if (cardId) {
+        // Load from database using URL parameter
+        try {
+          const card = await db.getYouTubeCardById(cardId);
+          
+          if (card) {
+            setYoutubeCard({
+              channelName: card.channel_name,
+              handle: card.handle,
+              subscribers: card.subscribers,
+              videosCount: card.videos_count,
+              logoUrl: card.logo_url,
+              bannerUrl: card.banner_url,
+              description: card.description,
+              totalViews: card.total_views,
+              location: card.location,
+              channelUrl: card.channel_url,
+              nfcActive: card.nfc_active || false,
+              settings: {
+                showSubscribers: card.show_subscribers !== false,
+                showVideos: card.show_videos !== false,
+                theme: card.theme || 'dark'
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error loading YouTube card:', error);
+        }
+      } else if (storeYoutubeCard) {
+        setYoutubeCard(storeYoutubeCard);
+      }
+      
+      setTimeout(() => setLoading(false), 800);
+    };
+    
+    loadCard();
+  }, [searchParams, storeYoutubeCard]);
 
   if (loading) {
     return (

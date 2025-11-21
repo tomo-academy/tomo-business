@@ -109,12 +109,33 @@ export const MyCards: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
-              {/* NFC Card Preview */}
-              <div className="relative aspect-[1.6/1] bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 p-6">
-                {/* NFC Pattern Background */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute top-0 right-0 w-24 h-24 border-2 border-white rounded-full"></div>
-                  <div className="absolute bottom-0 left-0 w-32 h-32 border-2 border-white rounded-full"></div>
+              {/* Stylish Debit Card Preview */}
+              <div className="relative aspect-[1.6/1] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-6 overflow-hidden">
+                {/* Glass morphism overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/30"></div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full blur-2xl"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64">
+                    <div className="absolute inset-0 border border-white/30 rounded-full"></div>
+                    <div className="absolute inset-4 border border-white/20 rounded-full"></div>
+                    <div className="absolute inset-8 border border-white/10 rounded-full"></div>
+                  </div>
+                </div>
+                
+                {/* Card Chip */}
+                <div className="absolute top-6 left-6 w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-md shadow-lg z-10">
+                  <div className="absolute inset-1 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm"></div>
+                  <div className="absolute inset-0 grid grid-cols-3 gap-0.5 p-1.5">
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                    <div className="bg-yellow-600/30 rounded-sm"></div>
+                  </div>
                 </div>
                 
                 {/* Active Badge */}
