@@ -15,6 +15,9 @@ export const supabase = createClient(
 
 // Database helper functions using Supabase
 export const db = {
+  // Export supabase client for admin operations
+  supabase,
+  
   // User operations
   async getUser(userId: string) {
     const { data, error } = await supabase

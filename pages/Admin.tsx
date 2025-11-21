@@ -41,37 +41,91 @@ export const Admin: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load all users with their card counts
-      const allUsers = await db.getAllUsersAdmin();
+      // Get all users from Supabase Auth (bypasses RLS)
+      const { data: authData } = await db.supabase.auth.admin.listUsers();
       
-      // Calculate stats
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      if (!authData?.users) {
+        // Fallback to regular query if admin API not available
+        const allUsers = await db.getAllUsersAdmin();
+        processUserData(allUsers);
+        return;
+      }
       
-      const activeToday = allUsers.filter((u: any) => 
-        u.last_sign_in_at && new Date(u.last_sign_in_at) >= today
-      ).length;
+      // Get card counts for each user from auth data
+      const usersWithData = await Promise.all(
+        authData.users.map(async (authUser: any) => {
+          // Get user data from users table
+          const { data: userData } = await db.supabase
+            .from('users')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+          
+          // Get business cards count
+          const { data: cards } = await db.supabase
+            .from('business_cards')
+            .select('id')
+            .eq('user_id', authUser.id)
+            .eq('is_active', true);
+          
+          // Get YouTube cards count
+          const { data: ytCards } = await db.supabase
+            .from('youtube_cards')
+            .select('id')
+            .eq('user_id', authUser.id);
+          
+          return {
+            id: authUser.id,
+            email: authUser.email || '',
+            name: userData?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+            created_at: authUser.created_at,
+            last_sign_in_at: authUser.last_sign_in_at,
+            card_count: cards?.length || 0,
+            youtube_card_count: ytCards?.length || 0
+          };
+        })
+      );
       
-      const newThisWeek = allUsers.filter((u: any) => 
-        u.created_at && new Date(u.created_at) >= weekAgo
-      ).length;
+      processUserData(usersWithData);
       
-      const totalCards = allUsers.reduce((sum: number, u: any) => sum + (u.card_count || 0), 0);
-      
-      setStats({
-        totalUsers: allUsers.length,
-        activeToday,
-        newThisWeek,
-        totalCards
-      });
-      
-      setUsers(allUsers);
     } catch (error) {
       console.error('Error loading admin data:', error);
+      // Try fallback method
+      try {
+        const allUsers = await db.getAllUsersAdmin();
+        processUserData(allUsers);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
+  };
+  
+  const processUserData = (allUsers: any[]) => {
+    // Calculate stats
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const activeToday = allUsers.filter((u: any) => 
+      u.last_sign_in_at && new Date(u.last_sign_in_at) >= today
+    ).length;
+    
+    const newThisWeek = allUsers.filter((u: any) => 
+      u.created_at && new Date(u.created_at) >= weekAgo
+    ).length;
+    
+    const totalCards = allUsers.reduce((sum: number, u: any) => sum + (u.card_count || 0), 0);
+    
+    setStats({
+      totalUsers: allUsers.length,
+      activeToday,
+      newThisWeek,
+      totalCards
+    });
+    
+    setUsers(allUsers);
   };
 
   const formatDate = (dateString: string) => {
