@@ -247,11 +247,31 @@ export const YouTubeEditor: React.FC = () => {
                 {/* QR Codes */}
                 <div className="px-6 pb-6 flex gap-3">
                   <div className="bg-white p-2 rounded-lg">
-                    <QRCodeSVG value={youtubeCard.channelUrl} size={60} />
+                    <QRCodeSVG 
+                      value={youtubeCard.channelUrl} 
+                      size={60}
+                      level="H"
+                      imageSettings={{
+                        src: "/logo.png",
+                        height: 15,
+                        width: 15,
+                        excavate: true,
+                      }}
+                    />
                     <p className="text-[8px] text-zinc-900 font-bold text-center mt-1">CHANNEL</p>
                   </div>
                   <div className="bg-white p-2 rounded-lg border-2 border-red-200">
-                    <QRCodeSVG value={`${window.location.origin}/#/youtube-profile?id=${youtubeCardId}`} size={60} />
+                    <QRCodeSVG 
+                      value={`${window.location.origin}/#/youtube-profile?id=${youtubeCardId}`} 
+                      size={60}
+                      level="H"
+                      imageSettings={{
+                        src: "/logo.png",
+                        height: 15,
+                        width: 15,
+                        excavate: true,
+                      }}
+                    />
                     <p className="text-[8px] text-red-600 font-bold text-center mt-1">PROFILE</p>
                   </div>
                 </div>

@@ -188,9 +188,9 @@ export const Dashboard: React.FC = () => {
                       size={140}
                       level="H"
                       imageSettings={{
-                        src: card.avatarUrl,
-                        height: 28,
-                        width: 28,
+                        src: "/logo.png",
+                        height: 35,
+                        width: 35,
                         excavate: true,
                       }}
                     />
@@ -307,12 +307,32 @@ export const Dashboard: React.FC = () => {
                                           <div className="flex gap-2">
                                               {/* External YouTube QR */}
                                               <div className="bg-white p-1.5 rounded-lg shadow-lg shrink-0 flex flex-col items-center gap-1">
-                                                  <QRCodeSVG value={youtubeCard.channelUrl} size={40} />
+                                                  <QRCodeSVG 
+                                                    value={youtubeCard.channelUrl} 
+                                                    size={40}
+                                                    level="H"
+                                                    imageSettings={{
+                                                      src: "/logo.png",
+                                                      height: 10,
+                                                      width: 10,
+                                                      excavate: true,
+                                                    }}
+                                                  />
                                                   <span className="text-[6px] font-bold uppercase tracking-widest text-zinc-900">Channel</span>
                                               </div>
                                               {/* Internal Profile QR */}
                                               <div className="bg-white p-1.5 rounded-lg shadow-lg shrink-0 flex flex-col items-center gap-1 border-2 border-red-100">
-                                                  <QRCodeSVG value={`${window.location.origin}/#/youtube-profile`} size={40} />
+                                                  <QRCodeSVG 
+                                                    value={`${window.location.origin}/#/youtube-profile`} 
+                                                    size={40}
+                                                    level="H"
+                                                    imageSettings={{
+                                                      src: "/logo.png",
+                                                      height: 10,
+                                                      width: 10,
+                                                      excavate: true,
+                                                    }}
+                                                  />
                                                   <span className="text-[6px] font-bold uppercase tracking-widest text-red-600">Profile</span>
                                               </div>
                                           </div>
@@ -462,9 +482,9 @@ export const Dashboard: React.FC = () => {
                                 size={60}
                                 level="H"
                                 imageSettings={{
-                                  src: c.avatarUrl,
-                                  height: 12,
-                                  width: 12,
+                                  src: "/logo.png",
+                                  height: 15,
+                                  width: 15,
                                   excavate: true,
                                 }}
                               />

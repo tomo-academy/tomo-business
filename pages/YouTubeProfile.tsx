@@ -241,7 +241,17 @@ export const YouTubeProfile: React.FC = () => {
                     </div>
                     
                     <div className="bg-white p-4 rounded-2xl shadow-inner">
-                         <QRCodeSVG value={window.location.href} size={220} />
+                         <QRCodeSVG 
+                           value={window.location.href} 
+                           size={220}
+                           level="H"
+                           imageSettings={{
+                             src: "/logo.png",
+                             height: 55,
+                             width: 55,
+                             excavate: true,
+                           }}
+                         />
                     </div>
                     
                     <h3 className="mt-8 text-white font-bold text-xl text-center">{youtubeCard.channelName}</h3>

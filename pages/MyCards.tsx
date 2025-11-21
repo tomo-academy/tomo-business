@@ -159,9 +159,9 @@ export const MyCards: React.FC = () => {
                       size={80}
                       level="H"
                       imageSettings={{
-                        src: c.avatarUrl,
-                        height: 16,
-                        width: 16,
+                        src: "/logo.png",
+                        height: 20,
+                        width: 20,
                         excavate: true,
                       }}
                     />

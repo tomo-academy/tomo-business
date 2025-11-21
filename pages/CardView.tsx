@@ -393,6 +393,12 @@ export const CardView: React.FC = () => {
               size={200}
               level="H"
               fgColor={card.theme.primaryColor}
+              imageSettings={{
+                src: "/logo.png",
+                height: 50,
+                width: 50,
+                excavate: true,
+              }}
             />
           </div>
         </div>
