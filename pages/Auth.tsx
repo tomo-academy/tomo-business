@@ -24,44 +24,58 @@ export const Auth: React.FC = () => {
       
       // Check for access_token in the hash (after #/auth)
       const hashParts = fullHash.split('#');
-      let accessToken = null;
+      let tokenParams = null;
       
       for (const part of hashParts) {
         if (part.includes('access_token=')) {
-          const params = new URLSearchParams(part);
-          accessToken = params.get('access_token');
+          tokenParams = new URLSearchParams(part);
           break;
         }
       }
       
-      if (accessToken) {
-        setIsProcessingOAuth(true);
-        setLoading(true);
-        setError('Completing sign in...');
+      if (tokenParams) {
+        const accessToken = tokenParams.get('access_token');
+        const refreshToken = tokenParams.get('refresh_token');
         
-        // Give Supabase time to process the OAuth callback
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Get the session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          setError('Authentication failed. Please try again.');
-          setIsProcessingOAuth(false);
-          setLoading(false);
-          return;
-        }
-        
-        if (session) {
-          console.log('OAuth session established, redirecting to dashboard');
-          // Clear the hash from URL
-          window.history.replaceState(null, '', '/#/auth');
-          navigate('/dashboard', { replace: true });
-        } else {
-          setError('Failed to establish session. Please try again.');
-          setIsProcessingOAuth(false);
-          setLoading(false);
+        if (accessToken) {
+          setIsProcessingOAuth(true);
+          setLoading(true);
+          setError('Completing sign in...');
+          
+          try {
+            // Set the session with the tokens from OAuth
+            const { data, error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            });
+            
+            if (setSessionError) {
+              console.error('Set session error:', setSessionError);
+              setError('Authentication failed. Please try again.');
+              setIsProcessingOAuth(false);
+              setLoading(false);
+              return;
+            }
+            
+            if (data.session) {
+              console.log('OAuth session established, redirecting to dashboard');
+              // Clear the hash from URL
+              window.history.replaceState(null, '', '/#/auth');
+              // Small delay to ensure session is fully processed
+              setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+              }, 500);
+            } else {
+              setError('Failed to establish session. Please try again.');
+              setIsProcessingOAuth(false);
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error('OAuth callback error:', err);
+            setError('Authentication error. Please try again.');
+            setIsProcessingOAuth(false);
+            setLoading(false);
+          }
         }
       }
     };
