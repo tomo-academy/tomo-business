@@ -13,6 +13,7 @@ interface UserData {
   last_sign_in_at: string;
   card_count: number;
   youtube_card_count: number;
+  auth_provider: string;
 }
 
 export const Admin: React.FC = () => {
@@ -99,7 +100,8 @@ export const Admin: React.FC = () => {
             created_at: user.created_at,
             last_sign_in_at: user.last_sign_in_at || user.updated_at || user.created_at,
             card_count: cards?.length || 0,
-            youtube_card_count: ytCards?.length || 0
+            youtube_card_count: ytCards?.length || 0,
+            auth_provider: user.auth_provider || 'email'
           };
         })
       );
@@ -259,6 +261,9 @@ export const Admin: React.FC = () => {
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    Provider
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Joined
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">
@@ -289,6 +294,14 @@ export const Admin: React.FC = () => {
                       <div className="flex items-center gap-2 text-sm text-zinc-600">
                         <Mail size={14} className="text-zinc-400" />
                         {user.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold capitalize
+                        {user.auth_provider === 'google' ? 'bg-red-100 text-red-700' : 
+                         user.auth_provider === 'github' ? 'bg-gray-800 text-white' : 
+                         'bg-zinc-100 text-zinc-700'}">
+                        {user.auth_provider || 'email'}
                       </div>
                     </td>
                     <td className="px-6 py-4">

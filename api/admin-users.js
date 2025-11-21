@@ -56,6 +56,9 @@ export default async function handler(req, res) {
           .select('id')
           .eq('user_id', authUser.id);
 
+        // Get auth provider from app_metadata
+        const authProvider = authUser.app_metadata?.provider || 'email';
+
         return {
           id: authUser.id,
           email: authUser.email || '',
@@ -63,7 +66,8 @@ export default async function handler(req, res) {
           created_at: authUser.created_at,
           last_sign_in_at: authUser.last_sign_in_at,
           card_count: cards?.length || 0,
-          youtube_card_count: ytCards?.length || 0
+          youtube_card_count: ytCards?.length || 0,
+          auth_provider: authProvider
         };
       })
     );
